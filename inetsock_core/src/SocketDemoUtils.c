@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // SocketDemoUtils.c: Definitions for the functions in the SocketDemoUtils.lib
-// static library
+// shared library
 
 #include "stdafx.h"
 #include "SocketDemoUtils.h"
