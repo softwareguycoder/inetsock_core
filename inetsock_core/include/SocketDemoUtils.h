@@ -166,4 +166,11 @@ int SocketDemoUtils_send(int sockFd, const char *buf);
  */
 int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port);
 
+/**
+ * \brief Attempts to release operating system resources that are allocated to the
+ * specified socket.
+ * \param sockFd Socket file descriptor referring to the socket that is to be closed.
+ */
+void SocketDemoUtils_close(int sockFd);
+
 #endif //__SOCKETDEMOUTILS_H__

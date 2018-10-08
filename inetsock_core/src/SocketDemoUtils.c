@@ -504,3 +504,10 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port)
     return result;
 }
 
+void SocketDemoUtils_close(int sockFd)
+{
+	if (sockFd <= 0)
+		return;		// just silently fail if the socket file descriptor is invalid
+
+	close(sockFd);
+}
