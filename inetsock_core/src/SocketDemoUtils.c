@@ -310,7 +310,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr)
     fprintf(stdout, 
         "accept: Configuring client endpoint to be non-blocking...\n");
 
-    // Attempt to configure the client_socket to be non-blocking, this way
+    // Attempt to configure the server socket to be non-blocking, this way
     // we can hopefully receive data as it is being sent until only getting
     // the data when the client closes the connection.
     if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0)
@@ -397,16 +397,15 @@ int SocketDemoUtils_recv(int sockFd, char **buf)
 		*buf = (char*)realloc(*buf, (total_read + RECV_BLOCK_SIZE + 1)*sizeof(char));
 	}
 
-	// We are done receiving, cap the string off with a null terminator
-	// after resizing the buffer to match the total bytes read + 1.  if
-	// a connection error happened prior to reading even one byte, then
-	// total_read will be zero and the call below will be equivalent to
-	// free.  strlen(*buf) will then return zero, and this will be
-	// how we can tell not to call free() again on *buf
-	*buf = (char*)realloc(*buf, (total_read + 1)*sizeof(char));
-
 	if (total_read > 0)
 	{
+		// We are done receiving, cap the string off with a null terminator
+		// after resizing the buffer to match the total bytes read + 1.  if
+		// a connection error happened prior to reading even one byte, then
+		// total_read will be zero and the call below will be equivalent to
+		// free.  strlen(*buf) will then return zero, and this will be
+		// how we can tell not to call free() again on *buf
+		*buf = (char*)realloc(*buf, (total_read + 1)*sizeof(char));
 		*(*buf + total_read) = '\0';	// cap the buffer off with the null-terminator
 	}
 
@@ -436,7 +435,8 @@ int SocketDemoUtils_send(int sockFd, const char *buf)
     }
 
     if (buf == NULL
-        || strlen(buf) <= 0)
+        || strlen(buf) <= 0
+		|| buf[0] == '\0')
     {
         // Nothing to send
         return 0;
