@@ -46,16 +46,17 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he)
     }
 
     fprintf(stdout, 
-        "Resolving host name or IP address '%s'...\n", hostnameOrIP);
+        "isValidHostnameOrIp: Resolving host name or IP address '%s'...\n", hostnameOrIP);
 
     if ( (*he = gethostbyname(hostnameOrIP) ) == NULL ) {
-        fprintf(stderr, "Hostname or IP address resolution failed.\n");
+        fprintf(stderr,
+        		"isValidHostnameOrIp: Hostname or IP address resolution failed.\n");
         *he = NULL;
         return FALSE;
     }
 
     fprintf(stdout,
-        "Hostname or IP address resolution succeeded.\n");
+        "isValidHostnameOrIp: Hostname or IP address resolution succeeded.\n");
 
     return TRUE;
 }
@@ -138,25 +139,25 @@ void error(const char* msg)
 int SocketDemoUtils_createTcpSocket()
 {
     fprintf(stdout,
-        "SocketDemoUtils_createTcpSocket: Allocating new TCP endpoint...\n");
+        "createTcpSocket: Allocating new TCP endpoint...\n");
     
     int sockFd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFd <= 0)
     {
-        error("SocketDemoUtils_createTcpSocket: Could not create endpoint.\n");
+        error("createTcpSocket: Could not create endpoint.\n");
     }    
 
     fprintf(stdout, 
-        "SocketDemoUtils_createTcpSocket: Endpoint created successfully.\n");
+        "createTcpSocket: Endpoint created successfully.\n");
 
-	// Set socket options to allow the listening socket to be reused.
+	// Set socket options to allow the socket to be reused.
 	if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, 
 		sizeof(int)) < 0)
     {
-	    error("setsockopt(SO_REUSEADDR) failed.");
+	    error("createTcpSocket: setsockopt(SO_REUSEADDR) failed.");
     }
 
-	fprintf(stdout, "SocketDemoUtils_createTcpSocket: Endpoint configured to be reusable\n");
+	fprintf(stdout, "createTcpSocket: Endpoint configured to be reusable\n");
 
     return sockFd;
 }
@@ -181,14 +182,14 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port, struct sockaddr_in
         || port[0] == '\0')
     {
         fprintf(stderr,
-            "SocketDemoUtils_populateServerAddrInfo: String containing the port number is blank.\n");
+            "populateServerAddrInfo: String containing the port number is blank.\n");
         exit(ERROR);
     }
 
     if (addr == NULL)
     {
         fprintf(stderr,
-            "SocketDemoUtils_populateServerAddrInfo: Missing pointer to a sockaddr_in structure.\n");
+            "populateServerAddrInfo: Missing pointer to a sockaddr_in structure.\n");
         exit(ERROR);        
     }
 
@@ -199,21 +200,21 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port, struct sockaddr_in
     if (result >= 0 && !isUserPortValid(portnum))
 	{
 		fprintf(stderr, 
-			"SocketDemoUtils_populateServerAddrInfo: Port number must be in the range 1024-49151 inclusive.\n");
+			"populateServerAddrInfo: Port number must be in the range 1024-49151 inclusive.\n");
 		exit(ERROR);
 	}
 
     // Populate the fields of the sockaddr_in structure passed to us with the proper values.
 
     fprintf(stdout,
-        "SocketDemoUtils_populateServerAddrInfo: Configuring server address and port...\n");
+        "populateServerAddrInfo: Configuring server address and port...\n");
 
     addr->sin_family = AF_INET;
     addr->sin_port = htons(portnum);   
     addr->sin_addr.s_addr = htons(INADDR_ANY);
 
     fprintf(stdout,
-        "SocketDemoUtils_populateServerAddrInfo: Server configured to listen on port %d.\n", portnum);
+        "populateServerAddrInfo: Server configured to listen on port %d.\n", portnum);
 }
 
 /**
@@ -284,13 +285,17 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr)
 
     if (sockFd <= 0)
     {
+    	fprintf(stderr, "accept: Invalid file descriptor passed in sockFd parameter.\n");
+
         errno = EBADF;          // Bad file descriptor
         return result;
     }
     
     if (addr == NULL)
     {
-        errno = EINVAL;         // Invalid value for addr parameter
+    	fprintf(stderr, "accept: Invalid server addressed.\n");
+
+    	errno = EINVAL;         // Invalid value for addr parameter
         return result;
     }
     // We now call the accept function.  This function holds us up
@@ -303,7 +308,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr)
     }
 
     fprintf(stdout, 
-        "SocketDemoUtils_accept: Configuring client endpoint to be non-blocking...\n");
+        "accept: Configuring client endpoint to be non-blocking...\n");
 
     // Attempt to configure the client_socket to be non-blocking, this way
     // we can hopefully receive data as it is being sent until only getting
@@ -311,14 +316,14 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr)
     if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0)
     {
         error_and_close(sockFd,
-            "SocketDemoUtils_accept: Could not set the client endpoint to be non-blocking.\n");
+            "accept: Could not set the client endpoint to be non-blocking.\n");
     }
 
     fprintf(stdout, 
-        "SocketDemoUtils_accept: Client endpoint configured to be non-blocking.\n");
+        "accept: Client endpoint configured to be non-blocking.\n");
 
     fprintf(stdout, 
-        "SocketDemoUtils_accept: New client connected.\n");
+        "accept: New client connected.\n");
 
     return result;
 }
@@ -341,7 +346,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf)
 	if (buf == NULL
 		|| sockFd <= 0)
 	{
-		fprintf(stderr, "SocketDemoUtils_getline: Invalid input.\n");	
+		fprintf(stderr, "getline: Invalid input.\n");
 		exit(ERROR);
 	}
 
@@ -364,7 +369,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf)
             if (errno == EAGAIN || errno == EWOULDBLOCK)
                 continue;
 
-            error("SocketDemoUtils_getline: Network error stopped us from receiving more text.");
+            error("getline: Network error stopped us from receiving more text.");
 
             //prevch = ch;
 			break;
@@ -461,14 +466,14 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port)
     if (sockFd <= 0)
     {
         fprintf(stderr,
-            "SocketDemoUtils_connect: Attempted to connect to remote host with no endpoint.\n");
+            "connect: Attempted to connect to remote host with no endpoint.\n");
         exit(ERROR);
     }
 
     if (!isUserPortValid(port))
     {
 		fprintf(stderr, 
-			"SocketDemoUtils_populateServerAddrInfo: Port number must be in the range 1024-49151 inclusive.\n");
+			"connect: Port number must be in the range 1024-49151 inclusive.\n");
 		exit(ERROR);
     }
     
@@ -478,11 +483,11 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port)
     if (!isValidHostnameOrIp(hostnameOrIp, &he))
     {
         error_and_close(sockFd,
-            "SocketDemoUtils_connect: Unable to validate/resolve hostname/IP address provided.");
+            "connect: Unable to validate/resolve hostname/IP address provided.");
     }
 
     fprintf(stdout,
-        "SocketDemoUtils_connect: Attempting to contact the server at '%s' on nPort %d...\n", 
+        "connect: Attempting to contact the server at '%s' on port %d...\n",
         hostnameOrIp, port);
 
     /* copy the network address to sockaddr_in structure */
@@ -493,13 +498,13 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port)
     if ((result = connect(sockFd, (struct sockaddr*)&server_address, sizeof(server_address))) < 0)
     {
         char buf[100];
-        sprintf(buf, "SocketDemoUtils_connect: The attempt to contact the server at '%s' on port %d failed.\n",
+        sprintf(buf, "connect: The attempt to contact the server at '%s' on port %d failed.\n",
         	hostnameOrIp, port);
         error_and_close(sockFd, buf);
     }
 
     fprintf(stdout, 
-        "SocketDemoUtils_connect: Connected to the server at '%s' on nPort %d.\n", hostnameOrIp, port);
+        "connect: Connected to the server at '%s' on nPort %d.\n", hostnameOrIp, port);
 
     return result;
 }
