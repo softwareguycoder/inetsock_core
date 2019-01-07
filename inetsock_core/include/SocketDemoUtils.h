@@ -3,12 +3,6 @@
 
 #include "stdafx.h"
 
-#define OK              0		// The server completed successfully
-#define ERROR           -1		// The server encountered an error
-
-#define FALSE           0
-#define TRUE            1
-
 #define RECV_BLOCK_SIZE	1
 #define RECV_FLAGS		0
 #define BACKLOG_SIZE	128		// Max number of client connections
