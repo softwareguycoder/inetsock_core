@@ -141,7 +141,8 @@ int SocketDemoUtils_createTcpSocket()
     int sockFd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFd <= 0)
     {
-        error("createTcpSocket: Could not create endpoint.");
+        log_error("createTcpSocket: Could not create endpoint.");
+        exit(ERROR);
     }    
 
     log_info("createTcpSocket: Endpoint created successfully.");
@@ -150,10 +151,11 @@ int SocketDemoUtils_createTcpSocket()
 	if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, 
 		sizeof(int)) < 0)
     {
-	    error("createTcpSocket: setsockopt(SO_REUSEADDR) failed.");
+	    log_error("createTcpSocket: setsockopt(SO_REUSEADDR) failed.");
+	    exit(ERROR);
     }
 
-	log_info("createTcpSocket: Endpoint configured to be reusable");
+	log_info("createTcpSocket: Endpoint configured to be reusable.");
 
     return sockFd;
 }
