@@ -123,8 +123,8 @@ void error(const char* msg)
         return;
     }
 
-    fprintf(stderr, "%s", msg);
-	perror(NULL);
+    log_error(msg);
+    perror(NULL);
 	exit(ERROR);
 }
 
