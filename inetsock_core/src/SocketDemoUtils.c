@@ -97,7 +97,7 @@ void error_and_close(int sockFd, const char *msg)
         return;         // This return statement might not fire, but just in case.
     }
 
-    fprintf(stderr, "%s", msg);
+    log_error(msg);
 	perror(NULL);
 
     if (sockFd > 0)
@@ -472,8 +472,8 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port)
 
     if (!isUserPortValid(port))
     {
-		fprintf(stderr, 
-			"connect: Port number must be in the range 1024-49151 inclusive.\n");
+		log_error(
+			"connect: Port number must be in the range 1024-49151 inclusive.");
 		exit(ERROR);
     }
     
@@ -486,8 +486,8 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port)
             "connect: Unable to validate/resolve hostname/IP address provided.");
     }
 
-    fprintf(stdout,
-        "connect: Attempting to contact the server at '%s' on port %d...\n",
+    log_info(
+        "connect: Attempting to contact the server at '%s' on port %d...",
         hostnameOrIp, port);
 
     /* copy the network address to sockaddr_in structure */
@@ -498,13 +498,13 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port)
     if ((result = connect(sockFd, (struct sockaddr*)&server_address, sizeof(server_address))) < 0)
     {
         char buf[100];
-        sprintf(buf, "connect: The attempt to contact the server at '%s' on port %d failed.\n",
+        log_error("connect: The attempt to contact the server at '%s' on port %d failed.",
         	hostnameOrIp, port);
         error_and_close(sockFd, buf);
     }
 
-    fprintf(stdout, 
-        "connect: Connected to the server at '%s' on nPort %d.\n", hostnameOrIp, port);
+    log_info(
+        "connect: Connected to the server at '%s' on port %d.", hostnameOrIp, port);
 
     return result;
 }
