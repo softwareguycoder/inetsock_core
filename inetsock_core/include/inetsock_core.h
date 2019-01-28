@@ -1,20 +1,12 @@
-#ifndef __SOCKETDEMOUTILS_H__
-#define __SOCKETDEMOUTILS_H__
+#ifndef __INETSOCK_CORE_H__
+#define __INETSOCK_CORE_H__
 
 #include "stdafx.h"
+#include "utils.h"
 
 #define RECV_BLOCK_SIZE	1
 #define RECV_FLAGS		0
 #define BACKLOG_SIZE	128		// Max number of client connections
-
-/**
- * \brief Checks the integer value supplied to ensure it's a valid user port
- * number and not reserved for a different service.
- * \param port Variable containing the value to be validated.
- * \returns Zero if the 'port' parameter is not in the range [1024, 49151]
- * (inclusive); nonzero otherwise.
- */
-int isUserPortValid(int port);
 
 /**
  * \brief Attempts to resolve the hostname or IP address provided with
@@ -167,4 +159,4 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port);
  */
 void SocketDemoUtils_close(int sockFd);
 
-#endif //__SOCKETDEMOUTILS_H__
+#endif //__INETSOCK_CORE_H__
