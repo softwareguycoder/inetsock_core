@@ -272,14 +272,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr)
         errno = EBADF;          // Bad file descriptor
         return result;
     }
-    
-    if (addr == NULL)
-    {
-    	log_error("accept: Invalid server addressed.");
 
-    	errno = EINVAL;         // Invalid value for addr parameter
-        return result;
-    }
     // We now call the accept function.  This function holds us up
     // until a new client connection comes in, whereupon it returns
     // a file descriptor that represents the socket on our side that
