@@ -442,7 +442,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	log_debug("In SocketDemoUtils_accept");
 
 	socklen_t client_address_len;
-	int result = ERROR;
+	int client_socket = ERROR;
 
 	log_debug("SocketDemoUtils_accept: sockFd = %d", sockFd);
 
@@ -454,7 +454,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 				"SocketDemoUtils_accept: Invalid file descriptor passed in sockFd parameter.");
 
 		errno = EBADF;          // Bad file descriptor
-		return result;
+		return client_socket;
 	}
 
 	log_info(
@@ -466,41 +466,41 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	// is connected to the client.
 	log_info("SocketDemoUtils_accept: Calling accept...");
 
-	if ((result = accept(sockFd, (struct sockaddr*) addr, &client_address_len))
+	if ((client_socket = accept(sockFd, (struct sockaddr*) addr, &client_address_len))
 			< 0) {
 		log_error(
 				"SocketDemoUtils_accept: Invalid value returned from accept.");
 
 		log_debug("SocketDemoUtils_accept: errno = %d", errno);
 
-		log_debug("SocketDemoUtils_accept: result = %d", result);
+		log_debug("SocketDemoUtils_accept: client_socket = %d", client_socket);
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
-		return result;
+		return client_socket;
 	}
 
 	log_info(
-			"SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");
+			"SocketDemoUtils_accept: Configuring client TCP endpoint to be non-blocking...");
 
 	// Attempt to configure the server socket to be non-blocking, this way
 	// we can hopefully receive data as it is being sent vs only getting
 	// the data when the client closes the connection.
-	if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
-		 error_and_close(sockFd,
-				 "SocketDemoUtils_accept: Could not set the server TCP endpoint to be non-blocking.");
+	if (fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK) < 0) {
+		 error_and_close(client_socket,
+				 "SocketDemoUtils_accept: Could not set the client TCP endpoint to be non-blocking.");
 	}
 
 	log_info(
-			"SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");
+			"SocketDemoUtils_accept: Client TCP endpoint configured to be non-blocking.");
 
 	log_info("SocketDemoUtils_accept: New client connected.");
 
-	log_debug("SocketDemoUtils_accept: result = %d", result);
+	log_debug("SocketDemoUtils_accept: client_socket = %d", client_socket);
 
 	log_debug("SocketDemoUtils_accept: Done.");
 
-	return result;
+	return client_socket;
 }
 
 /** \brief Reads a line of data, terminated by the '\n' character, from a socket.
