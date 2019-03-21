@@ -481,18 +481,18 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	}
 
 	log_info(
-			"SocketDemoUtils_accept: Configuring client endpoint to be non-blocking...");
+			"SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");
 
 	// Attempt to configure the server socket to be non-blocking, this way
 	// we can hopefully receive data as it is being sent vs only getting
 	// the data when the client closes the connection.
-	/*if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
-	 error_and_close(sockFd,
-	 "SocketDemoUtils_accept: Could not set the client endpoint to be non-blocking.");
-	 }*/
+	if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
+		 error_and_close(sockFd,
+				 "SocketDemoUtils_accept: Could not set the server TCP endpoint to be non-blocking.");
+	}
 
 	log_info(
-			"SocketDemoUtils_accept: Client endpoint configured to be non-blocking.");
+			"SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");
 
 	log_info("SocketDemoUtils_accept: New client connected.");
 
