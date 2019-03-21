@@ -568,7 +568,7 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 
 	log_info("SocketDemoUtils_send: sockFd = %d", sockFd);
 
-	log_info("SocketDemoUtils_send: Checking whether we've been passed a valid socket file descriptor...");'
+	log_info("SocketDemoUtils_send: Checking whether we have been passed a valid socket file descriptor...");
 
 	if (sockFd <= 0){
 		log_error("SocketDemoUtils_send: Invalid socket file descriptor passed.");
