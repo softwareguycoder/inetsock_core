@@ -138,6 +138,8 @@ int SocketDemoUtils_recv(int sockFd, char **buf);
  */
 int SocketDemoUtils_send(int sockFd, const char *buf);
 
+int SocketDemoUtils_setSocketReusable(int sockFd);
+
 /**
  * \brief Connects a socket to a remote host whose hostname or IP address and
  * port number is specified.
