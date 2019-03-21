@@ -441,7 +441,6 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 
 	log_debug("In SocketDemoUtils_accept");
 
-	socklen_t client_address_len;
 	int client_socket = ERROR;
 
 	log_debug("SocketDemoUtils_accept: sockFd = %d", sockFd);
@@ -460,18 +459,32 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	log_info(
 			"SocketDemoUtils_accept: We were passed a valid socket file descriptor.");
 
+	log_info("SocketDemoUtils_accept: Checking whether we are passed a valid sockaddr_in reference...");
+
+	if (addr == NULL) {
+		log_error("SocketDemoUtils_accept: Null reference passed for sockaddr_in structure.  Stopping.");
+
+		log_debug("SocketDemoUtils_accept: Done.");
+
+		return ERROR;
+	}
+
+	log_info("SocketDemoUtils_accept: We have a valid reference to a sockaddr_in structure.");
+
 	// We now call the accept function.  This function holds us up
 	// until a new client connection comes in, whereupon it returns
 	// a file descriptor that represents the socket on our side that
 	// is connected to the client.
 	log_info("SocketDemoUtils_accept: Calling accept...");
 
+	socklen_t client_address_len = sizeof(*addr);
+
 	if ((client_socket = accept(sockFd, (struct sockaddr*) addr, &client_address_len))
 			< 0) {
 		log_error(
 				"SocketDemoUtils_accept: Invalid value returned from accept.");
 
-		log_debug("SocketDemoUtils_accept: errno = %d", errno);
+		perror(NULL);
 
 		log_debug("SocketDemoUtils_accept: client_socket = %d", client_socket);
 
@@ -481,18 +494,18 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	}
 
 	log_info(
-			"SocketDemoUtils_accept: Configuring client TCP endpoint to be non-blocking...");
+			"SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");
 
 	// Attempt to configure the server socket to be non-blocking, this way
 	// we can hopefully receive data as it is being sent vs only getting
 	// the data when the client closes the connection.
-	if (fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK) < 0) {
-		 error_and_close(client_socket,
-				 "SocketDemoUtils_accept: Could not set the client TCP endpoint to be non-blocking.");
-	}
+	/*if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
+		 error_and_close(sockFd,
+				 "SocketDemoUtils_accept: Could not set the server TCP endpoint to be non-blocking.");
+	}*/
 
 	log_info(
-			"SocketDemoUtils_accept: Client TCP endpoint configured to be non-blocking.");
+			"SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");
 
 	log_info("SocketDemoUtils_accept: New client connected.");
 
