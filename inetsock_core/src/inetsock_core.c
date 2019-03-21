@@ -274,6 +274,10 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 	log_debug("In SocketDemoUtils_bind");
 
+	log_debug("SocketDemoUtils_bind: sockFd = %d", sockFd);
+
+	log_info("SocketDemoUtils_bind: Checking whether a valid socket file descriptor was passed...");
+
 	if (sockFd <= 0) {
 		log_error(
 				"SocketDemoUtils_bind: Invalid socket file descriptor passed.");
@@ -287,7 +291,13 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 		return ERROR;   // Invalid socket file descriptor
 	}
 
+	log_info("SocketDemoUtils_bind: A valid socket file descriptor has been passed.");
+
+	log_info("SocketDemoUtils_bind: Checking whether a valid sockaddr_in reference has been passed...");
+
 	if (addr == NULL) {
+		log_error("SocketDemoUtils_bind: A null reference has been passed for the 'addr' parameter.  Nothing to do.");
+
 		errno = EINVAL; // addr param required
 
 		log_debug("SocketDemoUtils_bind: Set errno = %d", errno);
@@ -297,14 +307,20 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 		return ERROR;
 	}
 
+	log_info("SocketDemoUtils_bind: Attempting to bind socket %d to the server address...", sockFd);
+
 	int retval = bind(sockFd, (struct sockaddr*) addr, sizeof(*addr));
 	if (retval <= 0) {
 		log_error("SocketDemoUtils_bind: Failed to bind socket.");
+
+		log_debug("SocketDemoUtils_bind: errno = %d", errno);
 
 		log_debug("SocketDemoUtils_bind: Done.");
 
 		return ERROR;
 	}
+
+	log_info("SocketDemoUtils_bind: Successfully bound the server socket.");
 
 	log_info("SocketDemoUtils_bind: Returning %d", retval);
 
