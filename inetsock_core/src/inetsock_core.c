@@ -167,36 +167,66 @@ void error(const char* msg) {
 int SocketDemoUtils_createTcpSocket() {
 	log_debug("In SocketDemoUtils_createTcpSocket");
 
-	log_info("createTcpSocket: Allocating new TCP endpoint...");
+	log_info("SocketDemoUtils_createTcpSocket: Allocating new TCP endpoint...");
 
 	int sockFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockFd <= 0) {
-		log_error("createTcpSocket: Could not create endpoint.");
+		log_error("SocketDemoUtils_createTcpSocket: Could not create endpoint.");
 
 		log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
 		exit(ERROR);
 	}
 
-	log_info("createTcpSocket: Endpoint created successfully.");
+	log_info("SocketDemoUtils_createTcpSocket: Endpoint created successfully.");
 
-	// Set socket options to allow the socket to be reused.
-	if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) { 1 }, sizeof(int))
-			< 0) {
-		log_error("createTcpSocket: setsockopt(SO_REUSEADDR) failed.");
+	log_info("SocketDemoUtils_createTcpSocket: Attempting to mark endpoint as reusable...");
 
-		log_debug("SocketDemoUtils_createTcpSocket: Done.");
+	SocketDemoUtils_setSocketReusable(sockFd);
 
-		exit(ERROR);
-	}
-
-	log_info("createTcpSocket: Endpoint configured to be reusable.");
+	log_info("SocketDemoUtils_createTcpSocket: Endpoint configured to be reusable.");
 
 	log_info("SocketDemoUtils_createTcpSocket: sockFd = %d", sockFd);
 
 	log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
 	return sockFd;
+}
+
+int SocketDemoUtils_setSocketReusable(int sockFd) {
+	log_debug("In SocketDemoUtils_setSocketReusable");
+
+	int retval = ERROR;
+
+	log_info("SocketDemoUtils_setSocketReusable: Checking whether a valid socket file descriptor was passed...");
+
+	if (sockFd <= 0) {
+		log_error("SocketDemoUtils_setSocketReusable: The socket file descriptor has an invalid value.");
+
+		log_debug("SocketDemoUtils_setSocketReusable: Done.");
+
+		return retval;
+	}
+
+	log_info("SocketDemoUtils_setSocketReusable: A valid socket file descriptor has been passed.");
+
+	log_info("SocketDemoUtils_setSocketReusable: Attempting to set the socket as reusable...");
+
+	// Set socket options to allow the socket to be reused.
+	retval = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) { 1 }, sizeof(int));
+	if (retval < 0) {
+		log_error("SocketDemoUtils_setSocketReusable: Failed to mark socket as reusable.");
+
+		log_debug("SocketDemoUtils_setSocketReusable: Done.");
+
+		return retval;
+	}
+
+	log_debug("SocketDemoUtils_setSocketReusable: retval = %d", retval);
+
+	log_debug("SocketDemoUtils_setSocketReusable: Done.");
+
+	return retval;
 }
 
 /**
@@ -276,7 +306,8 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 
 	log_debug("SocketDemoUtils_bind: sockFd = %d", sockFd);
 
-	log_info("SocketDemoUtils_bind: Checking whether a valid socket file descriptor was passed...");
+	log_info(
+			"SocketDemoUtils_bind: Checking whether a valid socket file descriptor was passed...");
 
 	if (sockFd <= 0) {
 		log_error(
@@ -291,12 +322,15 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 		return ERROR;   // Invalid socket file descriptor
 	}
 
-	log_info("SocketDemoUtils_bind: A valid socket file descriptor has been passed.");
+	log_info(
+			"SocketDemoUtils_bind: A valid socket file descriptor has been passed.");
 
-	log_info("SocketDemoUtils_bind: Checking whether a valid sockaddr_in reference has been passed...");
+	log_info(
+			"SocketDemoUtils_bind: Checking whether a valid sockaddr_in reference has been passed...");
 
 	if (addr == NULL) {
-		log_error("SocketDemoUtils_bind: A null reference has been passed for the 'addr' parameter.  Nothing to do.");
+		log_error(
+				"SocketDemoUtils_bind: A null reference has been passed for the 'addr' parameter.  Nothing to do.");
 
 		errno = EINVAL; // addr param required
 
@@ -307,10 +341,15 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 		return ERROR;
 	}
 
-	log_info("SocketDemoUtils_bind: Attempting to bind socket %d to the server address...", sockFd);
+	log_info(
+			"SocketDemoUtils_bind: Attempting to bind socket %d to the server address...",
+			sockFd);
 
 	int retval = bind(sockFd, (struct sockaddr*) addr, sizeof(*addr));
-	if (retval <= 0) {
+
+	log_debug("SocketDemoUtils_bind: retval = %d", retval);
+
+	if (retval < 0) {
 		log_error("SocketDemoUtils_bind: Failed to bind socket.");
 
 		log_debug("SocketDemoUtils_bind: errno = %d", errno);
@@ -341,6 +380,8 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 int SocketDemoUtils_listen(int sockFd) {
 	log_info("In SocketDemoUtils_listen");
 
+	log_debug("SocketDemoUtils_listen: sockFd = %d", sockFd);
+
 	log_info(
 			"SocketDemoUtils_listen: Checking for a valid socket file descriptor...");
 
@@ -357,8 +398,14 @@ int SocketDemoUtils_listen(int sockFd) {
 		return ERROR;   // Invalid socket file descriptor
 	}
 
+	log_info(
+			"SocketDemoUtils_listen: A valid socket file descriptor has been passed.");
+
 	int retval = listen(sockFd, BACKLOG_SIZE);
-	if (retval <= 0) {
+
+	log_debug("SocketDemoUtils_listen: retval = %d", retval);
+
+	if (retval < 0) {
 		log_error("SocketDemoUtils_listen: Failed to listen on socket.");
 
 		log_debug("SocketDemoUtils_listen: Done.");
@@ -437,12 +484,12 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 			"SocketDemoUtils_accept: Configuring client endpoint to be non-blocking...");
 
 	// Attempt to configure the server socket to be non-blocking, this way
-	// we can hopefully receive data as it is being sent until only getting
+	// we can hopefully receive data as it is being sent vs only getting
 	// the data when the client closes the connection.
-	if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
-		error_and_close(sockFd,
-				"SocketDemoUtils_accept: Could not set the client endpoint to be non-blocking.");
-	}
+	/*if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
+	 error_and_close(sockFd,
+	 "SocketDemoUtils_accept: Could not set the client endpoint to be non-blocking.");
+	 }*/
 
 	log_info(
 			"SocketDemoUtils_accept: Client endpoint configured to be non-blocking.");
@@ -471,34 +518,40 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 
 	log_debug("SocketDemoUtils_recv: sockFd = %d", sockFd);
 
-	log_info("SocketDemoUtils_recv: Checking whether the socket file descriptor passed is valid...");
+	log_info(
+			"SocketDemoUtils_recv: Checking whether the socket file descriptor passed is valid...");
 
-	if (sockFd <= 0){
-		log_error("SocketDemoUtils_recv: Invalid socket file descriptor passed.");
+	if (sockFd <= 0) {
+		log_error(
+				"SocketDemoUtils_recv: Invalid socket file descriptor passed.");
 
 		log_debug("SocketDemoUtils_recv: Done.");
 
 		exit(ERROR);
 	}
 
-	log_info("SocketDemoUtils_recv: The socket file descriptor passed is valid.");
+	log_info(
+			"SocketDemoUtils_recv: The socket file descriptor passed is valid.");
 
 	log_info("SocketDemoUtils_recv: Checking for valid receive buffer...");
 
-	if (buf == NULL){
-		log_error("SocketDemoUtils_recv: Null reference passed for receive buffer.");
+	if (buf == NULL) {
+		log_error(
+				"SocketDemoUtils_recv: Null reference passed for receive buffer.");
 
 		log_debug("SocketDemoUtils_recv: Done.");
 
 		exit(ERROR);
 	}
 
-	log_info("SocketDemoUtils_recv: Valid memory storage reference passed for receive buffer.");
+	log_info(
+			"SocketDemoUtils_recv: Valid memory storage reference passed for receive buffer.");
 
 	int bytes_read = 0;
 	int total_read = 0;
 
-	log_info("SocketDemoUtils_recv: Allocating %d bytes for receive buffer...", RECV_BLOCK_SIZE);
+	log_info("SocketDemoUtils_recv: Allocating %d bytes for receive buffer...",
+	RECV_BLOCK_SIZE);
 
 	// Allocate up some brand-new storage of size RECV_BLOCK_SIZE
 	// plus an extra slot to hold the null-terminator.  Free any
@@ -584,10 +637,12 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 
 	log_info("SocketDemoUtils_send: sockFd = %d", sockFd);
 
-	log_info("SocketDemoUtils_send: Checking whether we have been passed a valid socket file descriptor...");
+	log_info(
+			"SocketDemoUtils_send: Checking whether we have been passed a valid socket file descriptor...");
 
-	if (sockFd <= 0){
-		log_error("SocketDemoUtils_send: Invalid socket file descriptor passed.");
+	if (sockFd <= 0) {
+		log_error(
+				"SocketDemoUtils_send: Invalid socket file descriptor passed.");
 
 		errno = EBADF;
 
@@ -598,12 +653,15 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 		exit(ERROR);
 	}
 
-	log_info("SocketDemoUtils_send: The socket file descriptor passed is valid.");
+	log_info(
+			"SocketDemoUtils_send: The socket file descriptor passed is valid.");
 
-	log_info("SocketDemoUtils_send: Checking whether text was passed in for sending...");
+	log_info(
+			"SocketDemoUtils_send: Checking whether text was passed in for sending...");
 
 	if (buf == NULL || strlen(buf) <= 0 || buf[0] == '\0') {
-		log_error("SocketDemoUtils_send: Nothing was passed to us to send.  Stopping.");
+		log_error(
+				"SocketDemoUtils_send: Nothing was passed to us to send.  Stopping.");
 
 		log_debug("SocketDemoUtils_send: Returning zero.");
 
@@ -615,7 +673,7 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 
 	int retval = (int) send(sockFd, buf, strlen(buf), 0);
 
-	if (retval < 0){
+	if (retval < 0) {
 		error_and_close(sockFd, "SocketDemoUtils_send: Failed to send data.");
 	}
 
@@ -645,7 +703,8 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 
 	log_debug("SocketDemoUtils_connect: sockFd = %d", sockFd);
 
-	log_info("SocketDemoUtils_connect: Checking for a valid socket file descriptor...");
+	log_info(
+			"SocketDemoUtils_connect: Checking for a valid socket file descriptor...");
 
 	if (sockFd <= 0) {
 		log_error(
@@ -653,11 +712,13 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 		exit(result);
 	}
 
-	log_info("SocketDemoUtils_connect: A valid socket file descriptor was passed.");
+	log_info(
+			"SocketDemoUtils_connect: A valid socket file descriptor was passed.");
 
 	log_info("SocketDemoUtils_connect: port = %d");
 
-	log_info("SocketDemoUtils_connect: Checking whether the port number used is valid...");
+	log_info(
+			"SocketDemoUtils_connect: Checking whether the port number used is valid...");
 
 	if (!isUserPortValid(port)) {
 		log_error(
@@ -673,7 +734,8 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 	struct hostent *he;                    // Host entry
 	struct sockaddr_in server_address; // Structure for the server address and port
 
-	log_info("SocketDemoUtils_connect: Attempting to resolve the hostname or IP address '%s'...",
+	log_info(
+			"SocketDemoUtils_connect: Attempting to resolve the hostname or IP address '%s'...",
 			hostnameOrIp);
 
 	// First, try to resolve the host name or IP address passed to us, to ensure that
@@ -684,9 +746,11 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 				"connect: Unable to validate/resolve hostname/IP address provided.");
 	}
 
-	log_info("SocketDemoUtils_connect: The hostname or IP address passed could be resolved.");
+	log_info(
+			"SocketDemoUtils_connect: The hostname or IP address passed could be resolved.");
 
-	log_info("SocketDemoUtils_connect: Attempting to contact the server at '%s' on port %d...",
+	log_info(
+			"SocketDemoUtils_connect: Attempting to contact the server at '%s' on port %d...",
 			hostnameOrIp, port);
 
 	/* copy the network address to sockaddr_in structure */
@@ -707,7 +771,8 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 		exit(ERROR);
 	}
 
-	log_info("SocketDemoUtils_connect: Connected to the server at '%s' on port %d.",
+	log_info(
+			"SocketDemoUtils_connect: Connected to the server at '%s' on port %d.",
 			hostnameOrIp, port);
 
 	log_info("SocketDemoUtils_connect: result = %d", result);
@@ -722,7 +787,8 @@ void SocketDemoUtils_close(int sockFd) {
 
 	log_debug("SocketDemoUtils_close: sockFd = %d", sockFd);
 
-	log_info("SocketDemoUtils_close: Checking for a valid socket file descriptor...");
+	log_info(
+			"SocketDemoUtils_close: Checking for a valid socket file descriptor...");
 
 	if (sockFd <= 0) {
 		log_error(
@@ -731,13 +797,14 @@ void SocketDemoUtils_close(int sockFd) {
 		return;	// just silently fail if the socket file descriptor passed is invalid
 	}
 
-	log_info("SocketDemoUtils_close: A valid socket file descriptor was passed.");
+	log_info(
+			"SocketDemoUtils_close: A valid socket file descriptor was passed.");
 
 	log_info("SocketDemoUtils_close: Attempting to close the socket...");
 
 	int retval = close(sockFd);
 
-	if (retval < 0){
+	if (retval < 0) {
 		log_error("SocketDemoUtils_close: Failed to close the socket.");
 
 		log_debug("SocketDemoUtils_close: Done.");
