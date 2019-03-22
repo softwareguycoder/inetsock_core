@@ -84,9 +84,43 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he) {
 	return TRUE;
 }
 
-int isValidSocket(int sockFD)
-{
-	return sockFD > 0;
+/**
+ * @brief Determines whether the socket file descriptor passed is valid.
+ * @param sockFd An integer specifying the value of the file descriptor to be checked.
+ * @returns TRUE if the descriptor is valid; FALSE otherwise.
+ * @remarks "Valid" in this context simply means a positive integer.  This
+ * function's job is not to tell you whether the socket is currently open
+ * or closed.
+ */
+int isValidSocket(int sockFD) {
+	log_debug("In isValidSocket");
+
+	log_debug("isValidSocket: sockFD = %d", sockFD);
+
+	log_debug(
+			"isValidSocket: Checking whether the socket file descriptor passed has a valid value...");
+
+	/* Linux socket file descriptors are always positive, nonzero
+	 * integers when they represent a valid socket handle.
+	 */
+	if (sockFD <= 0) {
+		log_error(
+				"isValidSocket: Socket file descriptor is not a valid value.");
+
+		log_debug("isValidSocket: Result = FALSE");
+
+		log_debug("isValidSocket: Done.");
+
+		return FALSE;
+	}
+
+	log_debug("isValidSocket: Socket file descriptor passed is valid.");
+
+	log_debug("isValidSocket: Result = TRUE");
+
+	log_debug("isValidSocket: Done.");
+
+	return TRUE;
 }
 
 /**
@@ -176,7 +210,8 @@ int SocketDemoUtils_createTcpSocket() {
 
 	int sockFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockFd <= 0) {
-		log_error("SocketDemoUtils_createTcpSocket: Could not create endpoint.");
+		log_error(
+				"SocketDemoUtils_createTcpSocket: Could not create endpoint.");
 
 		log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
@@ -185,11 +220,13 @@ int SocketDemoUtils_createTcpSocket() {
 
 	log_info("SocketDemoUtils_createTcpSocket: Endpoint created successfully.");
 
-	log_info("SocketDemoUtils_createTcpSocket: Attempting to mark endpoint as reusable...");
+	log_info(
+			"SocketDemoUtils_createTcpSocket: Attempting to mark endpoint as reusable...");
 
 	SocketDemoUtils_setSocketReusable(sockFd);
 
-	log_info("SocketDemoUtils_createTcpSocket: Endpoint configured to be reusable.");
+	log_info(
+			"SocketDemoUtils_createTcpSocket: Endpoint configured to be reusable.");
 
 	log_info("SocketDemoUtils_createTcpSocket: sockFd = %d", sockFd);
 
@@ -203,24 +240,30 @@ int SocketDemoUtils_setSocketReusable(int sockFd) {
 
 	int retval = ERROR;
 
-	log_info("SocketDemoUtils_setSocketReusable: Checking whether a valid socket file descriptor was passed...");
+	log_info(
+			"SocketDemoUtils_setSocketReusable: Checking whether a valid socket file descriptor was passed...");
 
 	if (sockFd <= 0) {
-		log_error("SocketDemoUtils_setSocketReusable: The socket file descriptor has an invalid value.");
+		log_error(
+				"SocketDemoUtils_setSocketReusable: The socket file descriptor has an invalid value.");
 
 		log_debug("SocketDemoUtils_setSocketReusable: Done.");
 
 		return retval;
 	}
 
-	log_info("SocketDemoUtils_setSocketReusable: A valid socket file descriptor has been passed.");
+	log_info(
+			"SocketDemoUtils_setSocketReusable: A valid socket file descriptor has been passed.");
 
-	log_info("SocketDemoUtils_setSocketReusable: Attempting to set the socket as reusable...");
+	log_info(
+			"SocketDemoUtils_setSocketReusable: Attempting to set the socket as reusable...");
 
 	// Set socket options to allow the socket to be reused.
-	retval = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) { 1 }, sizeof(int));
+	retval = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) { 1 },
+			sizeof(int));
 	if (retval < 0) {
-		log_error("SocketDemoUtils_setSocketReusable: Failed to mark socket as reusable.");
+		log_error(
+				"SocketDemoUtils_setSocketReusable: Failed to mark socket as reusable.");
 
 		log_debug("SocketDemoUtils_setSocketReusable: Done.");
 
@@ -464,17 +507,20 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	log_info(
 			"SocketDemoUtils_accept: We were passed a valid socket file descriptor.");
 
-	log_info("SocketDemoUtils_accept: Checking whether we are passed a valid sockaddr_in reference...");
+	log_info(
+			"SocketDemoUtils_accept: Checking whether we are passed a valid sockaddr_in reference...");
 
 	if (addr == NULL) {
-		log_error("SocketDemoUtils_accept: Null reference passed for sockaddr_in structure.  Stopping.");
+		log_error(
+				"SocketDemoUtils_accept: Null reference passed for sockaddr_in structure.  Stopping.");
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
 		return ERROR;
 	}
 
-	log_info("SocketDemoUtils_accept: We have a valid reference to a sockaddr_in structure.");
+	log_info(
+			"SocketDemoUtils_accept: We have a valid reference to a sockaddr_in structure.");
 
 	// We now call the accept function.  This function holds us up
 	// until a new client connection comes in, whereupon it returns
@@ -484,8 +530,8 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 
 	socklen_t client_address_len = sizeof(*addr);
 
-	if ((client_socket = accept(sockFd, (struct sockaddr*) addr, &client_address_len))
-			< 0) {
+	if ((client_socket = accept(sockFd, (struct sockaddr*) addr,
+			&client_address_len)) < 0) {
 		log_error(
 				"SocketDemoUtils_accept: Invalid value returned from accept.");
 
@@ -505,9 +551,9 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	// we can hopefully receive data as it is being sent vs only getting
 	// the data when the client closes the connection.
 	/*if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
-		 error_and_close(sockFd,
-				 "SocketDemoUtils_accept: Could not set the server TCP endpoint to be non-blocking.");
-	}*/
+	 error_and_close(sockFd,
+	 "SocketDemoUtils_accept: Could not set the server TCP endpoint to be non-blocking.");
+	 }*/
 
 	log_info(
 			"SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");
