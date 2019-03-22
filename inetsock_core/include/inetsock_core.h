@@ -24,6 +24,16 @@
 int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he);
 
 /**
+ * @brief Determines whether the socket file descriptor passed is valid.
+ * @param sockFd An integer specifying the value of the file descriptor to be checked.
+ * @returns TRUE if the descriptor is valid; FALSE otherwise.
+ * @remarks "Valid" in this context simply means a positive integer.  This
+ * function's job is not to tell you whether the socket is currently open
+ * or closed.
+ */
+int isValidSocket(int sockFD);
+
+/**
  * @brief Frees the memory at the address specified.
  * @param ppBuffer Address of a pointer which points to memory
  * allocated with the '*alloc' functions (malloc, calloc, realloc).

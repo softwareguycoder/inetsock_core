@@ -84,6 +84,11 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he) {
 	return TRUE;
 }
 
+int isValidSocket(int sockFD)
+{
+	return sockFD > 0;
+}
+
 /**
  * \brief Frees the memory at the address specified.
  * \param ppBuffer Address of a pointer which points to memory
