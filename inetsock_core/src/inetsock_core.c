@@ -6,15 +6,15 @@
 #include "stdafx.h"
 
 /**
- * \brief Attempts to resolve the hostname or IP address provided with
+ * @brief Attempts to resolve the hostname or IP address provided with
  * the Domain Name System (DNS) and reports success or failure.
- * \param hostnameOrIP The hostname or IP address of the remote computer
+ * @param hostnameOrIP The hostname or IP address of the remote computer
  * that is to be resolved with DNS.
- * \param Address of a storage location that is to be filled with a 
+ * @param Address of a storage location that is to be filled with a
  *  hostent structure upon successful resolution of the hostname or 
  *  IP address provided.  
- * \returns Zero if resolution has failed; nonzero otherwise.
- * \remarks If this function returns nonzero, then the value of '*he'
+ * @returns Zero if resolution has failed; nonzero otherwise.
+ * @remarks If this function returns nonzero, then the value of '*he'
  *  will be the address of a storage location containing a hostent
  *  structure containing information for the remote host.
  */
@@ -90,10 +90,10 @@ int isValidSocket(int sockFD)
 }
 
 /**
- * \brief Frees the memory at the address specified.
- * \param ppBuffer Address of a pointer which points to memory
+ * @brief Frees the memory at the address specified.
+ * @param ppBuffer Address of a pointer which points to memory
  * allocated with the '*alloc' functions (malloc, calloc, realloc).
- * \remarks Remember to cast the address of the pointer being passed 
+ * @remarks Remember to cast the address of the pointer being passed
  * to this function to void** 
  */
 void free_buffer(void **ppBuffer) {
@@ -374,10 +374,10 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 }
 
 /**
- * \brief Sets up a TCP or UDP server socket to listen on a port and IP address
+ * @brief Sets up a TCP or UDP server socket to listen on a port and IP address
  * to which it has been bound previously with the SocketDemoUtils_bind function.
- * \params sockFd Socket file descriptor.
- * \returns ERROR if the socket file descriptor passed in sockFd does not represent
+ * @params sockFd Socket file descriptor.
+ * @returns ERROR if the socket file descriptor passed in sockFd does not represent
  * a valid, open socket and sets errno to EBADF.  Otherwise, returns the result of
  * calling listen on the socket file descriptor passed with a backlog size of
  * BACKLOG_SIZE (128 by default).  Zero is returned if the operation was successful.
@@ -426,15 +426,15 @@ int SocketDemoUtils_listen(int sockFd) {
 }
 
 /**
- * \brief Accepts an incoming connection on a socket and returns information about
+ * @brief Accepts an incoming connection on a socket and returns information about
  * the remote host.
- * \param sockFd Socket file descriptor on which to accept new incoming connections.
- * \param addr Reference to a sockaddr_in structure that receives information about
+ * @param sockFd Socket file descriptor on which to accept new incoming connections.
+ * @param addr Reference to a sockaddr_in structure that receives information about
  * the IP address of the remote endpoint.
- * \returns Socket file descriptor representing the local endpoint of the new
+ * @returns Socket file descriptor representing the local endpoint of the new
  * incoming connection; or a negative number indicating that errno should be read
  * for the error description.
- * \remarks Returns ERROR if any of the following are true: (a) sets errno to EBADF
+ * @remarks Returns ERROR if any of the following are true: (a) sets errno to EBADF
  * if sockFd is an invalid value (nonpositive) or (b) sets errno to EINVAL if addr
  * is NULL.  If the incoming connection is accepted successfully, this function also
  * calls fcntl on the new file descriptor to set the incoming socket connection to be
@@ -521,7 +521,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	return client_socket;
 }
 
-/** \brief Reads a line of data, terminated by the '\n' character, from a socket.
+/** @brief Reads a line of data, terminated by the '\n' character, from a socket.
  *  \param sockFd Socket file descriptor from which to receive data.
  *  \param buf Reference to an address at which to allocate storage for the received data.
  *  \returns Total bytes read for the current line or a negative number otherwise.
@@ -703,14 +703,14 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 }
 
 /**
- * \brief Connects a socket to a remote host whose hostname or IP address and
+ * @brief Connects a socket to a remote host whose hostname or IP address and
  * port number is specified.
- * \param sockFd Socket file descriptor representing a socket that is not yet
+ * @param sockFd Socket file descriptor representing a socket that is not yet
  * connected to a remote endpoint.
- * \param hostnameOrIp String indicating the human-readable (in DNS) hostname
+ * @param hostnameOrIp String indicating the human-readable (in DNS) hostname
  * or the IP address of the remote host.
- * \param port Port number that the service on the remote host is listening on.
- * \returns Zero if successful; ERROR if an error occurred.  The errno
+ * @param port Port number that the service on the remote host is listening on.
+ * @returns Zero if successful; ERROR if an error occurred.  The errno
  * value should be examined if this happens.  In other cases, this function
  * forcibly terminates the calling program with the ERROR exit code.
  */
