@@ -5,6 +5,7 @@
 	<projects>
 		<project>conversion_core</project>
 		<project>debug_core</project>
+		<project>common_core</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

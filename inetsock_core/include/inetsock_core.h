@@ -4,8 +4,7 @@
 #include "stdafx.h"
 #include "utils.h"
 
-// Forward declaration of BOOL data type
-typedef enum BOOL;
+#include <../../common_core/common_core/include/common_core.h>
 
 #define RECV_BLOCK_SIZE	1
 #define RECV_FLAGS		0
