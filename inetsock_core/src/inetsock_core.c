@@ -735,7 +735,9 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 		return 0;
 	}
 
-	int retval = (int) send(sockFd, buf, strlen(buf), 0);
+	int buf_len = strlen(buf);
+
+	int retval = (int) send(sockFd, buf, buf_len, 0);
 
 	if (retval < 0) {
 		error_and_close(sockFd, "SocketDemoUtils_send: Failed to send data.");
