@@ -687,6 +687,54 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 }
 
 /**
+ * @brief Helper function to guarantee that entire message provided gets sent over a socket.
+ * @param sockFd File descriptor for the socket.  Socket must be in the connected state.
+ * @param buffer Reference to the start of the buffer containing the message to be sent.
+ * @param length Size of the buffer to be used for sending.
+ * @return Total number of bytes sent, or -1 if an error occurred.
+ * @remarks This function will kill the program after spitting out an error message if something goes wrong.
+ */
+int send_all(int sockFd, const char *buffer, size_t length)
+{
+	if (sockFd <= 0){
+		fprintf(stderr, "send_all: Invalid socket file descriptor.\n");
+		exit(ERROR);
+	}
+
+	if (buffer == NULL || ((char*)buffer)[0] == '\0' || strlen((char*)buffer) == 0) {
+		fprintf(stderr, "send_all: Empty buffer supplied.\n");
+		exit(ERROR);
+	}
+
+	if ((int)length <= 0) {
+		fprintf(stderr, "send_all: Length must be a positive number.\n");
+		exit(ERROR);
+	}
+
+    char *ptr = (char*) buffer;
+
+    int remaining = (int)length;
+
+    int total_bytes_sent = 0;
+
+    while (total_bytes_sent < remaining)
+    {
+        int bytes_sent = send(sockFd, ptr, length, 0);
+        if (bytes_sent < 1) {
+        	perror("send_all");
+        	fprintf(stderr, "send_all: Failed to send.\n");
+        	exit(ERROR);
+        }
+        total_bytes_sent += bytes_sent;
+
+        ptr+=bytes_sent;
+        remaining-=bytes_sent;
+    }
+
+    return total_bytes_sent;
+}
+
+/**
  *	\brief Sends data to the endpoint on the other end of the connection referenced
  *	by the connected socket.
  *	\param sockFd Socket file descriptor.  Must be a descriptor for a valid socket that
@@ -737,17 +785,17 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 
 	int buf_len = strlen(buf);
 
-	int retval = (int) send(sockFd, buf, buf_len, 0);
+	int bytes_sent = send_all(sockFd, buf, buf_len);
 
-	if (retval < 0) {
+	if (bytes_sent < 0) {
 		error_and_close(sockFd, "SocketDemoUtils_send: Failed to send data.");
 	}
 
-	log_info("SocketDemoUtils_send: %d bytes sent.", retval);
+	log_info("SocketDemoUtils_send: %d bytes sent.", bytes_sent);
 
 	log_debug("SocketDemoUtils_send: Done.");
 
-	return retval;
+	return bytes_sent;
 }
 
 /**
