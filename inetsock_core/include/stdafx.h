@@ -19,4 +19,8 @@
 #include <../../debug_core/debug_core/include/debug_core.h>
 #include <../../conversion_core/conversion_core/include/conversion_core.h>
 
+typedef enum {
+	FALSE, TRUE
+} BOOL;
+
 #endif //__STDAFX_H__
