@@ -2,8 +2,8 @@
 // socketapi.c: Definitions for the functions in the SocketDemoUtils.lib
 // shared library
 
-#include <inetsock_core.h>
 #include "stdafx.h"
+#include "inetsock_core.h"
 
 /**
  * @brief Attempts to resolve the hostname or IP address provided with
@@ -615,7 +615,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 	int total_read = 0;
 
 	log_info("SocketDemoUtils_recv: Allocating %d bytes for receive buffer...",
-			RECV_BLOCK_SIZE);
+	RECV_BLOCK_SIZE);
 
 	// Allocate up some brand-new storage of size RECV_BLOCK_SIZE
 	// plus an extra slot to hold the null-terminator.  Free any
@@ -694,44 +694,43 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
  * @return Total number of bytes sent, or -1 if an error occurred.
  * @remarks This function will kill the program after spitting out an error message if something goes wrong.
  */
-int send_all(int sockFd, const char *buffer, size_t length)
-{
-	if (sockFd <= 0){
+int send_all(int sockFd, const char *buffer, size_t length) {
+	if (sockFd <= 0) {
 		fprintf(stderr, "send_all: Invalid socket file descriptor.\n");
 		exit(ERROR);
 	}
 
-	if (buffer == NULL || ((char*)buffer)[0] == '\0' || strlen((char*)buffer) == 0) {
+	if (buffer == NULL || ((char*) buffer)[0] == '\0'
+			|| strlen((char*) buffer) == 0) {
 		fprintf(stderr, "send_all: Empty buffer supplied.\n");
 		exit(ERROR);
 	}
 
-	if ((int)length <= 0) {
+	if ((int) length <= 0) {
 		fprintf(stderr, "send_all: Length must be a positive number.\n");
 		exit(ERROR);
 	}
 
-    char *ptr = (char*) buffer;
+	char *ptr = (char*) buffer;
 
-    int remaining = (int)length;
+	int remaining = (int) length;
 
-    int total_bytes_sent = 0;
+	int total_bytes_sent = 0;
 
-    while (total_bytes_sent < remaining)
-    {
-        int bytes_sent = send(sockFd, ptr, length, 0);
-        if (bytes_sent < 1) {
-        	perror("send_all");
-        	fprintf(stderr, "send_all: Failed to send.\n");
-        	exit(ERROR);
-        }
-        total_bytes_sent += bytes_sent;
+	while (total_bytes_sent < remaining) {
+		int bytes_sent = send(sockFd, ptr, length, 0);
+		if (bytes_sent < 1) {
+			perror("send_all");
+			fprintf(stderr, "send_all: Failed to send.\n");
+			exit(ERROR);
+		}
+		total_bytes_sent += bytes_sent;
 
-        ptr+=bytes_sent;
-        remaining-=bytes_sent;
-    }
+		ptr += bytes_sent;
+		remaining -= bytes_sent;
+	}
 
-    return total_bytes_sent;
+	return total_bytes_sent;
 }
 
 /**
