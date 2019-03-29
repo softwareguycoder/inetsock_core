@@ -615,7 +615,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 	int total_read = 0;
 
 	log_info("SocketDemoUtils_recv: Allocating %d bytes for receive buffer...",
-	RECV_BLOCK_SIZE);
+			RECV_BLOCK_SIZE);
 
 	// Allocate up some brand-new storage of size RECV_BLOCK_SIZE
 	// plus an extra slot to hold the null-terminator.  Free any
