@@ -173,4 +173,9 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port);
  */
 void SocketDemoUtils_close(int sockFd);
 
+/**
+ * @brief Destroys and deallocates the operating system resources for the socket mutex.
+ */
+void FreeSocketMutex();
+
 #endif //__INETSOCK_CORE_H__

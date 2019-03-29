@@ -34,7 +34,7 @@ void LockSocketMutex() {
 		if (OK != nResult) {
 			// Cleanup the mutex handle if necessary
 			if (NULL != g_pSocketMutex) {
-				FreeMutex();
+				FreeSocketMutex();
 			}
 
 			perror("LockSocketMutex");
