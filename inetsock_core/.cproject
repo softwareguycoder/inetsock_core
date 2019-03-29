@@ -89,6 +89,8 @@
                                     								
                                 </option>
                                 								
+                                <option id="gnu.c.compiler.option.pthread.392944455" superClass="gnu.c.compiler.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+                                								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1756062350" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
                             </tool>
@@ -278,6 +280,8 @@
                                     <listOptionValue builtIn="false" value="&quot;${workspace_loc:/inetsock_core/include}&quot;"/>
                                     								
                                 </option>
+                                								
+                                <option id="gnu.c.compiler.option.pthread.1511050250" superClass="gnu.c.compiler.option.pthread" value="true" valueType="boolean"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.422624779" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
