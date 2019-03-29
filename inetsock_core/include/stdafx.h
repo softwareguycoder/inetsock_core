@@ -10,6 +10,7 @@
 #include <strings.h>
 #include <errno.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
