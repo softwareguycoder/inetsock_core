@@ -11,6 +11,22 @@
 #define BACKLOG_SIZE	128		// Max number of client connections
 
 /**
+ * @brief Initializes the global socket mutex handle.
+ * @remarks The global socket mutex handle is used to ensure
+ * communications are handled in as atomic and thread-safe
+ * manner as possible.  This function is to be called once per
+ * application, preferably from the main function. */
+void CreateSocketMutex();
+
+/**
+ * @brief Releases resources used by the global socket mutex handle.
+ * @remarks The global socket mutex handle is used to ensure
+ * communications are handled in as atomic and thread-safe
+ * manner as possible.  This function is to be called once
+ * per application, preferably from the main function. */
+void FreeSocketMutex();
+
+/**
  * @brief Attempts to resolve the hostname or IP address provided with
  * the Domain Name System (DNS) and reports success or failure.
  * @param hostnameOrIP The hostname or IP address of the remote computer

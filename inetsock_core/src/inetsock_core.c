@@ -7,43 +7,107 @@
 
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
-void FreeSocketMutex() {
-	if (NULL == g_pSocketMutex) {
+void CreateSocketMutex() {
+	log_debug("In CreateSocketMutex");
+
+	log_debug("CreateSocketMutex: Checking whether the socket mutex handle has already been created...");
+
+	if (NULL != g_pSocketMutex) {
+		log_debug("CreateSocketMutex: Socket mutex handle already created.  Nothing to do.");
+
+		log_debug("CreateSocketMutex: Done.");
+
 		return;
 	}
 
-	pthread_mutex_destroy(g_pSocketMutex);
+	log_debug("CreateSocketMutex: The socket mutex handle has not been created yet.");
+
+	log_debug("CreateSocketMutex: Attempting to create and then initialize a new socket mutex handle...");
+
+	g_pSocketMutex = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
+	if (g_pSocketMutex == NULL) {
+		log_error("CreateSocketMutex: Failed to allocate memory for a new socket mutex handle.");
+
+		perror("LockSocketMutex");
+
+		exit(ERROR);
+	}
+
+	log_debug("CreateSocketMutex: Successfully allocated storage for a socket mutex handle.");
+
+	log_debug("CreateSocketMutex: Attempting to initialize the socket mutex handle...");
+
+	// Call pthread_mutex_init.  This version of CreateMutex just passes a
+	// mutex handle for the function to initialize with NULL for the attributes.
+	int nResult = pthread_mutex_init(g_pSocketMutex, NULL);
+	if (OK != nResult) {
+		log_error("CreateSocketMutex: Failed to initialize the socket mutex handle.");
+
+		// Cleanup the mutex handle if necessary
+		if (NULL != g_pSocketMutex) {
+			log_debug("CreateSocketMutex: Attempting to release the system resources used by the handle...");
+
+			FreeSocketMutex();
+
+			log_debug("CreateSocketMutex: We called FreeSocketMutex.");
+		}
+
+		log_debug("CreateSocketMutex: Done.");
+
+		perror("LockSocketMutex");
+		exit(ERROR);
+	}
+
+	log_debug("CreateSocketMutex: Done.");
+}
+
+void FreeSocketMutex() {
+	log_debug("In FreeSocketMutex");
+
+	log_debug(
+			"FreeSocketMutex: Checking whether g_pSocketMutex variable is NULL...");
+
+	if (NULL == g_pSocketMutex) {
+		log_debug(
+				"FreeSocketMutex: The g_pSocketMutex variable has a null reference.");
+
+		log_debug("FreeSocketMutex: Done.");
+
+		return;
+	}
+
+	log_debug(
+			"FreeSocketMutex: The g_pSocketMutex has a valid pthread_mutex_t reference.");
+
+	log_debug("FreeSocketMutex: Attempting to destroy the socket mutex...");
+
+	int retval = pthread_mutex_destroy(g_pSocketMutex);
+	if (retval != OK) {
+		perror("inetsock_core[FreeSocketMutex]");
+
+		exit(ERROR);
+	}
+
+	log_debug("FreeSocketMutex: retval from pthread_mutex_destroy = %d",
+			retval);
+
+	log_debug(
+			"FreeSocketMutex: Attempting to release the resources associated with the g_pSocketMutex handle...");
 
 	free(g_pSocketMutex);
 	g_pSocketMutex = NULL;
+
+	log_debug("FreeSocketMutex: Resources freed.");
+
+	log_debug("FreeSocketMutex: Done.");
 }
 
 void LockSocketMutex() {
+	log_debug("In LockSocketMutex");
+
 	int nResult = ERROR;
 
 	if (NULL == g_pSocketMutex) {
-		g_pSocketMutex = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
-		if (g_pSocketMutex == NULL) {
-			perror("LockSocketMutex");
-			exit(ERROR);
-		}
-
-		// Call pthread_mutex_init.  This version of CreateMutex just passes a
-		// mutex handle for the function to initialize with NULL for the attributes.
-		nResult = pthread_mutex_init(g_pSocketMutex, NULL);
-		if (OK != nResult) {
-			// Cleanup the mutex handle if necessary
-			if (NULL != g_pSocketMutex) {
-				FreeSocketMutex();
-			}
-
-			perror("LockSocketMutex");
-			exit(ERROR);
-		}
-	}
-
-	if (NULL == g_pSocketMutex) {
-		perror("LockSocketMutex");
 		exit(ERROR);
 	}
 
@@ -330,7 +394,7 @@ int SocketDemoUtils_setSocketReusable(int sockFd) {
 	log_info(
 			"SocketDemoUtils_setSocketReusable: Attempting to set the socket as reusable...");
 
-	// Set socket options to allow the socket to be reused.
+// Set socket options to allow the socket to be reused.
 	LockSocketMutex();
 	{
 		retval = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) { 1 },
@@ -627,10 +691,10 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	log_info(
 			"SocketDemoUtils_accept: We have a valid reference to a sockaddr_in structure.");
 
-	// We now call the accept function.  This function holds us up
-	// until a new client connection comes in, whereupon it returns
-	// a file descriptor that represents the socket on our side that
-	// is connected to the client.
+// We now call the accept function.  This function holds us up
+// until a new client connection comes in, whereupon it returns
+// a file descriptor that represents the socket on our side that
+// is connected to the client.
 	log_info("SocketDemoUtils_accept: Calling accept...");
 
 	socklen_t client_address_len = sizeof(*addr);
@@ -652,9 +716,9 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	log_info(
 			"SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");
 
-	// Attempt to configure the server socket to be non-blocking, this way
-	// we can hopefully receive data as it is being sent vs only getting
-	// the data when the client closes the connection.
+// Attempt to configure the server socket to be non-blocking, this way
+// we can hopefully receive data as it is being sent vs only getting
+// the data when the client closes the connection.
 	/*if (fcntl(sockFd, F_SETFL, fcntl(sockFd, F_GETFL, 0) | O_NONBLOCK) < 0) {
 	 error_and_close(sockFd,
 	 "SocketDemoUtils_accept: Could not set the server TCP endpoint to be non-blocking.");
@@ -967,9 +1031,9 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 			"SocketDemoUtils_connect: Attempting to resolve the hostname or IP address '%s'...",
 			hostnameOrIp);
 
-	// First, try to resolve the host name or IP address passed to us, to ensure that
-	// the host can even be found on the network in the first place.  Calling the function
-	// below also has the added bonus of filling in a hostent structure for us if it succeeds.
+// First, try to resolve the host name or IP address passed to us, to ensure that
+// the host can even be found on the network in the first place.  Calling the function
+// below also has the added bonus of filling in a hostent structure for us if it succeeds.
 	if (!isValidHostnameOrIp(hostnameOrIp, &he)) {
 		error_and_close(sockFd,
 				"connect: Unable to validate/resolve hostname/IP address provided.");
