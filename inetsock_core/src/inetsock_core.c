@@ -139,15 +139,35 @@ void LockSocketMutex() {
 }
 
 void UnlockSocketMutex() {
+	log_debug("In UnlockSocketMutex");
+
+	log_debug("UnlockSocketMutex: Checking whether the socket mutex handle has been initialized...");
+
 	if (NULL == g_pSocketMutex) {
+		log_debug("UnlockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
+
+		log_debug("UnlockSocketMutex: Done.");
+
 		return;
 	}
 
+	log_debug("UnlockSocketMutex: The socket mutex handle has been initialized.");
+
+	log_debug("UnlockSocketMutex: Attempting to release the currently-active lock on the socket mutex...");
+
 	int nResult = pthread_mutex_unlock(g_pSocketMutex);
 	if (OK != nResult) {
+		log_error("UnlockSocketMutex: Failed to release the socket mutex lock.");
+
+		log_debug("UnlockSocketMutex: Done.");
+
 		perror("UnlockSocketMutex");
 		exit(ERROR);
 	}
+
+	log_debug("UnlockSocketMutex: The socket mutex lock has been released.");
+
+	log_debug("UnlockSocketMutex: Done.");
 }
 
 /**
