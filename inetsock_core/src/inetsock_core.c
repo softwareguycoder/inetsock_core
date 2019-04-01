@@ -107,15 +107,34 @@ void LockSocketMutex() {
 
 	int nResult = ERROR;
 
+	log_debug("LockSocketMutex: Checking if the socket mutex handle has been initialized...");
+
 	if (NULL == g_pSocketMutex) {
+		log_debug("LockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
+
+		log_debug("LockSocketMutex: Done.");
+
 		return;	/* if we are here then we are not using mutexes at all */
 	}
 
+	log_debug("LockSocketMutex: The socket mutex handle is initialized.");
+
+	log_debug("LockSocketMutex: Attempting to obtain a lock on the socket mutex...");
+
 	nResult = pthread_mutex_lock(g_pSocketMutex);
 	if (OK != nResult) {
+		log_error("LockSocketMutex: Failed to obtain a lock on the socket mutex.");
+
+		log_debug("LockSocketMutex: Done.");
+
 		perror("LockSocketMutex");
 		exit(ERROR);
 	}
+
+	log_debug("LockSocketMutex: A lock has been obtained on the socket mutex.");
+
+	log_debug("LockSocketMutex: Done.");
+
 	return; 	// Succeeded
 }
 
