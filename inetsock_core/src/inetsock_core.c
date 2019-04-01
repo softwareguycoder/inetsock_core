@@ -323,13 +323,13 @@ void free_buffer(void **ppBuffer) {
 }
 
 /**
- *  \brief Reports the error message specified as well as the error from
+ * @brief Reports the error message specified as well as the error from
  *  the system.  Closes the socket file descriptor provided in order to
  *   free operating system resources.  Exits the program with the ERROR exit
  *   code.
- *  \param sockFd Socket file descriptor to be closed after the error
+ * @param sockFd Socket file descriptor to be closed after the error
  *  has been reported.
- *  \param msg Additional error text to be echoed to the console.
+ * @param msg Additional error text to be echoed to the console.
  **/
 void error_and_close(int sockFd, const char *msg) {
 	if (msg == NULL || strlen(msg) == 0 || msg[0] == '\0') {
@@ -350,9 +350,9 @@ void error_and_close(int sockFd, const char *msg) {
 }
 
 /**
- *  \brief Reports the error message specified as well as the error from
+ * @brief Reports the error message specified as well as the error from
  *  the system. Exits the program with the ERROR exit code.
- *  \param msg Additional error text to be echoed to the console.
+ * @param msg Additional error text to be echoed to the console.
  **/
 void error(const char* msg) {
 	if (msg == NULL || strlen(msg) == 0 || msg[0] == '\0') {
@@ -365,26 +365,26 @@ void error(const char* msg) {
 }
 
 /**
- *  \brief Creates a new socket endpoint for communicating with a remote
+ * @brief Creates a new socket endpoint for communicating with a remote
  *  host over TCP/IP.
- *  \returns Socket file descriptor which provides a handle to the newly-
+ * @returns Socket file descriptor which provides a handle to the newly-
  *  created socket endpoint.
- *  \remarks If an error occurs, prints the error to the console and forces
+ * @remarks If an error occurs, prints the error to the console and forces
  *  the program to exit with the ERROR exit code.
  */
 int SocketDemoUtils_createTcpSocket() {
 	log_debug("In SocketDemoUtils_createTcpSocket");
 
-	log_info("SocketDemoUtils_createTcpSocket: Allocating new TCP endpoint...");
-
 	int sockFd = -1;
 
 	LockSocketMutex();
 	{
+		log_info("SocketDemoUtils_createTcpSocket: Attempting to create new TCP endpoint...");
+
 		sockFd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockFd <= 0) {
 			log_error(
-					"SocketDemoUtils_createTcpSocket: Could not create endpoint.");
+					"SocketDemoUtils_createTcpSocket: Could not create new TCP endpoint.");
 
 			log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
@@ -403,7 +403,7 @@ int SocketDemoUtils_createTcpSocket() {
 	log_info(
 			"SocketDemoUtils_createTcpSocket: Endpoint configured to be reusable.");
 
-	log_info("SocketDemoUtils_createTcpSocket: sockFd = %d", sockFd);
+	log_info("SocketDemoUtils_createTcpSocket: The new socket file descriptor is %d.", sockFd);
 
 	log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
@@ -457,16 +457,16 @@ int SocketDemoUtils_setSocketReusable(int sockFd) {
 }
 
 /**
- *  \brief Populates the port and address information for a server
+ * @brief Populates the port and address information for a server
  *  so the server knows the hostname/IP address and port of the computer
  *  it is listening on.
- *  \param port String containing the port number to listen on.  Must be numeric.
- *  \param hostnameOrIp String containing the hostname or IP address of the server
+ * @param port String containing the port number to listen on.  Must be numeric.
+ * @param hostnameOrIp String containing the hostname or IP address of the server
  *  computer.  Can be NULL, in which case, htons(INADDR_ANY) will be set.  Use NULL
  *  for a sevrer, and a specific value for a client.
- *  \param addr Address of storage that will receive a filled-in sockaddr_in structure
+ * @param addr Address of storage that will receive a filled-in sockaddr_in structure
  *  that defines the server endpoint.
- *  \remarks If invalid input is supplied or an error occurs, reports thse problem
+ * @remarks If invalid input is supplied or an error occurs, reports thse problem
  *  to the console and forces the program to die with the ERROR exit code.
  */
 void SocketDemoUtils_populateServerAddrInfo(const char *port,
@@ -526,10 +526,10 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 }
 
 /**
- *  \brief Binds a server socket to the address and port specified by the 'addr'
+ * @brief Binds a server socket to the address and port specified by the 'addr'
  *   parameter.
- *  \param sockFd Socket file descriptor that references the socket to be bound.
- *  \param addr Pointer to a sockaddr_in structure that specifies the host and port
+ * @param sockFd Socket file descriptor that references the socket to be bound.
+ * @param addr Pointer to a sockaddr_in structure that specifies the host and port
  *  to which the socket endpoint should be bound.
  */
 int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
@@ -775,11 +775,12 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	return client_socket;
 }
 
-/** @brief Reads a line of data, terminated by the '\n' character, from a socket.
- *  \param sockFd Socket file descriptor from which to receive data.
- *  \param buf Reference to an address at which to allocate storage for the received data.
- *  \returns Total bytes read for the current line or a negative number otherwise.
- *  \remarks This function will forcibly terminate the calling program with an exit
+/**
+ * @brief Reads a line of data, terminated by the '\n' character, from a socket.
+ * @param sockFd Socket file descriptor from which to receive data.
+ * @param buf Reference to an address at which to allocate storage for the received data.
+ * @returns Total bytes read for the current line or a negative number otherwise.
+ * @remarks This function will forcibly terminate the calling program with an exit
  *  code of ERROR if the operation fails.  It is the responsibility of the caller to
  *  free the memory referenced by *buf.  The caller must always pass NULL for buf.  If
  *  valid storage is passed, this function will free the storage referenced by *buf and
