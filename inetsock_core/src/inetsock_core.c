@@ -752,8 +752,8 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 		return client_socket;
 	}
 
-	log_info(
-			"SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");
+	/*log_info(
+			"SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");*/
 
 // Attempt to configure the server socket to be non-blocking, this way
 // we can hopefully receive data as it is being sent vs only getting
@@ -763,8 +763,8 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	 "SocketDemoUtils_accept: Could not set the server TCP endpoint to be non-blocking.");
 	 }*/
 
-	log_info(
-			"SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");
+	/*log_info(
+			"SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");*/
 
 	log_info("SocketDemoUtils_accept: New client connected.");
 
