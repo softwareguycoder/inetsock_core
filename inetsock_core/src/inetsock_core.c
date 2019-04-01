@@ -108,7 +108,7 @@ void LockSocketMutex() {
 	int nResult = ERROR;
 
 	if (NULL == g_pSocketMutex) {
-		exit(ERROR);
+		return;	/* if we are here then we are not using mutexes at all */
 	}
 
 	nResult = pthread_mutex_lock(g_pSocketMutex);
