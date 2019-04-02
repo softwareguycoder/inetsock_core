@@ -421,11 +421,11 @@ int SocketDemoUtils_createTcpSocket() {
 			log_error(
 					"SocketDemoUtils_createTcpSocket: Could not create new TCP endpoint.");
 
-			log_debug("SocketDemoUtils_createTcpSocket: Done.");
-
 			UnlockSocketMutex();
 
 			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
 			exit(ERROR);
 		}
