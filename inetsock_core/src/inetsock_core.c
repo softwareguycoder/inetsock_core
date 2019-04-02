@@ -694,11 +694,23 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 
 			log_debug("SocketDemoUtils_bind: Set errno = %d", errno);
 
-			log_debug("SocketDemoUtils_bind: Done.");
+			perror("SocketDemoUtils_bind");
+
+			log_debug("SocketDemoUtils_bind: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			return ERROR;
+			log_debug("SocketDemoUtils_bind: Socket mutex lock has been released.");
+
+			log_debug("SocketDemoUtils_bind: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_bind: Socket mutex resources freed.");
+
+			log_debug("SocketDemoUtils_bind: Done.");
+
+			exit(ERROR);
 		}
 
 		log_info(
