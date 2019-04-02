@@ -110,10 +110,9 @@ void LockSocketMutex() {
 	log_debug("LockSocketMutex: Checking if the socket mutex handle has been initialized...");
 
 	if (NULL == g_pSocketMutex) {
-		// If the g_pSocketMutex handle is NULL, then assume that the caller of
-		// this library is writing a single-threaded application which will not
-		// need mutexes for its socket communications. Therefore, in this case,
-		// just do nothing.
+		// just do nothing. (g_pSocketMutex will have the value of NULL in the case
+		// that the caller of this library did not call CreateSocketMutex in their
+		// main function)
 
 		log_debug("LockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
 
@@ -149,6 +148,13 @@ void UnlockSocketMutex() {
 	log_debug("UnlockSocketMutex: Checking whether the socket mutex handle has been initialized...");
 
 	if (NULL == g_pSocketMutex) {
+		// If the g_pSocketMutex handle is NULL, then assume that the caller of
+		// this library is writing a single-threaded application which will not
+		// need mutexes for its socket communications. Therefore, in this case,
+		// just do nothing. (g_pSocketMutex will have the value of NULL in the case
+		// that the caller of this library did not call CreateSocketMutex in their
+		// main function)
+
 		log_debug("UnlockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
 
 		log_debug("UnlockSocketMutex: Done.");
