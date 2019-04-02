@@ -1295,10 +1295,12 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 	int total_bytes_sent = ERROR;
 
-	log_info("send_all: Getting lock on socket mutex...");
+	log_debug("send_all: Getting lock on socket mutex...");
 
 	LockSocketMutex();
 	{
+		log_debug("send_all: Lock obtained on socket mutex.");
+
 		log_debug(
 				"send_all: Checking whether socket file descriptor is a valid value...");
 
@@ -1306,6 +1308,28 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 		if (sockFd <= 0) {
 			log_error("send_all: Invalid socket file descriptor.");
+
+			log_error(
+					"send_all: Invalid socket file descriptor passed.");
+
+			errno = EBADF;
+
+			perror("send_all");
+
+			log_debug(
+					"send_all: Attempting to release the socket mutex lock...");
+
+			UnlockSocketMutex();
+
+			log_debug(
+					"send_all: Socket mutex lock has been released.");
+
+			log_debug(
+					"send_all: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("send_all: Socket mutex resources freed.");
 
 			log_debug("send_all: Done.");
 
