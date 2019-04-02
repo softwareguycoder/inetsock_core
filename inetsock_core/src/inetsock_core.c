@@ -879,10 +879,14 @@ int SocketDemoUtils_listen(int sockFd) {
 			exit(ERROR);
 		}
 
-		log_info(
+		log_debug(
 				"SocketDemoUtils_listen: A valid socket file descriptor has been passed.");
 
+		log_info("SocketDemoUtils_listen: Calling the listen function...");
+
 		retval = listen(sockFd, BACKLOG_SIZE);
+
+		log_debug("SocketDemoUtils_listen: The listen function has been called.");
 
 		log_debug("SocketDemoUtils_listen: retval = %d", retval);
 
