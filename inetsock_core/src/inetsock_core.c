@@ -964,8 +964,20 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 		log_error(
 				"SocketDemoUtils_accept: Invalid file descriptor passed in sockFd parameter.");
 
-		errno = EBADF;          // Bad file descriptor
-		return client_socket;
+		errno = EBADF;
+
+		perror("SocketDemoUtils_accept");
+
+		log_debug(
+				"SocketDemoUtils_accept: Attempting to free socket mutex resources...");
+
+		FreeSocketMutex();
+
+		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
+
+		log_debug("SocketDemoUtils_accept: Done.");
+
+		exit(ERROR);
 	}
 
 	log_info(
@@ -978,9 +990,20 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 		log_error(
 				"SocketDemoUtils_accept: Null reference passed for sockaddr_in structure.  Stopping.");
 
+		errno = EINVAL;
+
+		perror("SocketDemoUtils_accept");
+
+		log_debug(
+				"SocketDemoUtils_accept: Attempting to free socket mutex resources...");
+
+		FreeSocketMutex();
+
+		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
+
 		log_debug("SocketDemoUtils_accept: Done.");
 
-		return ERROR;
+		exit(ERROR);
 	}
 
 	log_info(
@@ -999,13 +1022,18 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 		log_error(
 				"SocketDemoUtils_accept: Invalid value returned from accept.");
 
-		perror(NULL);
+		perror("SocketDemoUtils_accept");
 
-		log_debug("SocketDemoUtils_accept: client_socket = %d", client_socket);
+		log_debug(
+				"SocketDemoUtils_accept: Attempting to free socket mutex resources...");
+
+		FreeSocketMutex();
+
+		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
-		return client_socket;
+		exit(ERROR);
 	}
 
 	/*log_info(
