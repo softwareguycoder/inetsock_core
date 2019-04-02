@@ -69,7 +69,7 @@ void FreeSocketMutex() {
 
 	if (NULL == g_pSocketMutex) {
 		log_debug(
-				"FreeSocketMutex: The g_pSocketMutex variable has a null reference.");
+				"FreeSocketMutex: The g_pSocketMutex variable has a null reference.  Nothing to do.");
 
 		log_debug("FreeSocketMutex: Done.");
 
@@ -408,8 +408,12 @@ int SocketDemoUtils_createTcpSocket() {
 
 	int sockFd = -1;
 
+	log_info("SocketDemoUtils_createTcpSocket: Attempting to obtain a lock on the socket mutex...");
+
 	LockSocketMutex();
 	{
+		log_info("SocketDemoUtils_createTcpSocket: Socket mutex lock obtained, or we are not using it.");
+
 		log_info("SocketDemoUtils_createTcpSocket: Attempting to create new TCP endpoint...");
 
 		sockFd = socket(AF_INET, SOCK_STREAM, 0);
@@ -419,10 +423,18 @@ int SocketDemoUtils_createTcpSocket() {
 
 			log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
+			UnlockSocketMutex();
+
+			FreeSocketMutex();
+
 			exit(ERROR);
 		}
+
+		log_debug("SocketDemoUtils_createTcpSocket: Attempting to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
+
+	log_debug("SocketDemoUtils_createTcpSocket: Socket mutex lock released.");
 
 	log_info("SocketDemoUtils_createTcpSocket: Endpoint created successfully.");
 
