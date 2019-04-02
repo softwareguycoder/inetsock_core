@@ -237,11 +237,15 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he) {
 
 	log_info("isValidHostnameOrIp: The 'he' parameter has a value.");
 
-	log_info("isValidHostnameOrIp: Resolving host name or IP address '%s'...",
-			hostnameOrIP);
+	log_info("isValidHostnameOrIp: Attempting to obtain a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
+		log_info("isValidHostnameOrIp: Lock obtained on the socket mutex, or no mutex was created.");
+
+		log_info("isValidHostnameOrIp: Resolving host name or IP address '%s'...",
+				hostnameOrIP);
+
 		if ((*he = gethostbyname(hostnameOrIP)) == NULL) {
 			log_error(
 					"isValidHostnameOrIp: Hostname or IP address resolution failed.");
@@ -254,14 +258,26 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he) {
 
 			log_debug("isValidHostnameOrIp: Done.");
 
+			log_info("isValidHostnameOrIp: Releasing socket mutex lock...");
+
+			UnlockSocketMutex();
+
+			log_info("isValidHostnameOrIp: Socket mutex lock released.");
+
 			// return FALSE if no storage location for the 'he' pointer passed
 			return FALSE;
 		}
+
+		log_info("isValidHostnameOrIp: Releasing socket mutex lock...");
 	}
 	UnlockSocketMutex();
 
+	log_info("isValidHostnameOrIp: Socket mutex lock released.");
+
 	log_info(
 			"isValidHostnameOrIp: Hostname or IP address resolution succeeded.");
+
+	log_debug("isValidHostnameOrIp: Returning TRUE.");
 
 	log_debug("isValidHostnameOrIp: Done.");
 
