@@ -1225,7 +1225,8 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 
 			log_info("SocketDemoUtils_recv: Char received: '%c'", ch);
 
-			log_info("SocketDemoUtils_recv: Expanding buffer to fit next char...");
+			log_info(
+					"SocketDemoUtils_recv: Expanding buffer to fit next char...");
 
 			// re-allocate more memory and make sure to leave room
 			// for the null-terminator.
@@ -1290,40 +1291,56 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
  * @remarks This function will kill the program after spitting out an error message if something goes wrong.
  */
 int send_all(int sockFd, const char *buffer, size_t length) {
-	if (sockFd <= 0) {
-		fprintf(stderr, "send_all: Invalid socket file descriptor.\n");
-		exit(ERROR);
-	}
+	log_debug("In send_all");
 
-	if (buffer == NULL || ((char*) buffer)[0] == '\0'
-			|| strlen((char*) buffer) == 0) {
-		fprintf(stderr, "send_all: Empty buffer supplied.\n");
-		exit(ERROR);
-	}
+	int total_bytes_sent = ERROR;
 
-	if ((int) length <= 0) {
-		fprintf(stderr, "send_all: Length must be a positive number.\n");
-		exit(ERROR);
-	}
+	log_info("send_all: Getting lock on socket mutex...");
 
-	char *ptr = (char*) buffer;
+	LockSocketMutex();
+	{
+		log_debug(
+				"send_all: Checking whether socket file descriptor is a valid value...");
 
-	int remaining = (int) length;
+		log_debug("send_all: sockFd = %d", sockFd);
 
-	int total_bytes_sent = 0;
+		if (sockFd <= 0) {
+			log_error("send_all: Invalid socket file descriptor.");
 
-	while (total_bytes_sent < remaining) {
-		int bytes_sent = send(sockFd, ptr, length, 0);
-		if (bytes_sent < 1) {
-			perror("send_all");
-			fprintf(stderr, "send_all: Failed to send.\n");
+			log_debug("send_all: Done.");
+
 			exit(ERROR);
 		}
-		total_bytes_sent += bytes_sent;
 
-		ptr += bytes_sent;
-		remaining -= bytes_sent;
+		if (buffer == NULL || ((char*) buffer)[0] == '\0'
+				|| strlen((char*) buffer) == 0) {
+			fprintf(stderr, "send_all: Empty buffer supplied.\n");
+			exit(ERROR);
+		}
+
+		if ((int) length <= 0) {
+			fprintf(stderr, "send_all: Length must be a positive number.\n");
+			exit(ERROR);
+		}
+
+		char *ptr = (char*) buffer;
+
+		int remaining = (int) length;
+
+		while (total_bytes_sent < remaining) {
+			int bytes_sent = send(sockFd, ptr, length, 0);
+			if (bytes_sent < 1) {
+				perror("send_all");
+				fprintf(stderr, "send_all: Failed to send.\n");
+				exit(ERROR);
+			}
+			total_bytes_sent += bytes_sent;
+
+			ptr += bytes_sent;
+			remaining -= bytes_sent;
+		}
 	}
+	UnlockSocketMutex();
 
 	return total_bytes_sent;
 }
