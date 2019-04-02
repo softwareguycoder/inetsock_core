@@ -10,42 +10,51 @@ pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 void CreateSocketMutex() {
 	log_debug("In CreateSocketMutex");
 
-	log_debug("CreateSocketMutex: Checking whether the socket mutex handle has already been created...");
+	log_debug(
+			"CreateSocketMutex: Checking whether the socket mutex handle has already been created...");
 
 	if (NULL != g_pSocketMutex) {
-		log_debug("CreateSocketMutex: Socket mutex handle already created.  Nothing to do.");
+		log_debug(
+				"CreateSocketMutex: Socket mutex handle already created.  Nothing to do.");
 
 		log_debug("CreateSocketMutex: Done.");
 
 		return;
 	}
 
-	log_debug("CreateSocketMutex: The socket mutex handle has not been created yet.");
+	log_debug(
+			"CreateSocketMutex: The socket mutex handle has not been created yet.");
 
-	log_debug("CreateSocketMutex: Attempting to create and then initialize a new socket mutex handle...");
+	log_debug(
+			"CreateSocketMutex: Attempting to create and then initialize a new socket mutex handle...");
 
 	g_pSocketMutex = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
 	if (g_pSocketMutex == NULL) {
-		log_error("CreateSocketMutex: Failed to allocate memory for a new socket mutex handle.");
+		log_error(
+				"CreateSocketMutex: Failed to allocate memory for a new socket mutex handle.");
 
 		perror("LockSocketMutex");
 
 		exit(ERROR);
 	}
 
-	log_debug("CreateSocketMutex: Successfully allocated storage for a socket mutex handle.");
+	log_debug(
+			"CreateSocketMutex: Successfully allocated storage for a socket mutex handle.");
 
-	log_debug("CreateSocketMutex: Attempting to initialize the socket mutex handle...");
+	log_debug(
+			"CreateSocketMutex: Attempting to initialize the socket mutex handle...");
 
 	// Call pthread_mutex_init.  This version of CreateMutex just passes a
 	// mutex handle for the function to initialize with NULL for the attributes.
 	int nResult = pthread_mutex_init(g_pSocketMutex, NULL);
 	if (OK != nResult) {
-		log_error("CreateSocketMutex: Failed to initialize the socket mutex handle.");
+		log_error(
+				"CreateSocketMutex: Failed to initialize the socket mutex handle.");
 
 		// Cleanup the mutex handle if necessary
 		if (NULL != g_pSocketMutex) {
-			log_debug("CreateSocketMutex: Attempting to release the system resources used by the handle...");
+			log_debug(
+					"CreateSocketMutex: Attempting to release the system resources used by the handle...");
 
 			FreeSocketMutex();
 
@@ -107,27 +116,31 @@ void LockSocketMutex() {
 
 	int nResult = ERROR;
 
-	log_debug("LockSocketMutex: Checking if the socket mutex handle has been initialized...");
+	log_debug(
+			"LockSocketMutex: Checking if the socket mutex handle has been initialized...");
 
 	if (NULL == g_pSocketMutex) {
 		// just do nothing. (g_pSocketMutex will have the value of NULL in the case
 		// that the caller of this library did not call CreateSocketMutex in their
 		// main function)
 
-		log_debug("LockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
+		log_debug(
+				"LockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
 
 		log_debug("LockSocketMutex: Done.");
 
-		return;	/* if we are here then we are not using mutexes at all */
+		return; /* if we are here then we are not using mutexes at all */
 	}
 
 	log_debug("LockSocketMutex: The socket mutex handle is initialized.");
 
-	log_debug("LockSocketMutex: Attempting to obtain a lock on the socket mutex...");
+	log_debug(
+			"LockSocketMutex: Attempting to obtain a lock on the socket mutex...");
 
 	nResult = pthread_mutex_lock(g_pSocketMutex);
 	if (OK != nResult) {
-		log_error("LockSocketMutex: Failed to obtain a lock on the socket mutex.");
+		log_error(
+				"LockSocketMutex: Failed to obtain a lock on the socket mutex.");
 
 		log_debug("LockSocketMutex: Done.");
 
@@ -145,7 +158,8 @@ void LockSocketMutex() {
 void UnlockSocketMutex() {
 	log_debug("In UnlockSocketMutex");
 
-	log_debug("UnlockSocketMutex: Checking whether the socket mutex handle has been initialized...");
+	log_debug(
+			"UnlockSocketMutex: Checking whether the socket mutex handle has been initialized...");
 
 	if (NULL == g_pSocketMutex) {
 		// If the g_pSocketMutex handle is NULL, then assume that the caller of
@@ -155,20 +169,24 @@ void UnlockSocketMutex() {
 		// that the caller of this library did not call CreateSocketMutex in their
 		// main function)
 
-		log_debug("UnlockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
+		log_debug(
+				"UnlockSocketMutex: The socket mutex handle has not been initialized.  Nothing to do.");
 
 		log_debug("UnlockSocketMutex: Done.");
 
 		return;
 	}
 
-	log_debug("UnlockSocketMutex: The socket mutex handle has been initialized.");
+	log_debug(
+			"UnlockSocketMutex: The socket mutex handle has been initialized.");
 
-	log_debug("UnlockSocketMutex: Attempting to release the currently-active lock on the socket mutex...");
+	log_debug(
+			"UnlockSocketMutex: Attempting to release the currently-active lock on the socket mutex...");
 
 	int nResult = pthread_mutex_unlock(g_pSocketMutex);
 	if (OK != nResult) {
-		log_error("UnlockSocketMutex: Failed to release the socket mutex lock.");
+		log_error(
+				"UnlockSocketMutex: Failed to release the socket mutex lock.");
 
 		log_debug("UnlockSocketMutex: Done.");
 
@@ -208,7 +226,8 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he) {
 		// out if the hostname or IP supplied is valid.  Can't very well do that
 		// for a blank value!
 
-		log_error("hostnameOrIP parameter is blank.  This parameter is required to have a value.");
+		log_error(
+				"hostnameOrIP parameter is blank.  This parameter is required to have a value.");
 
 		log_debug("isValidHostnameOrIp: Returning FALSE.");
 
@@ -237,13 +256,16 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he) {
 
 	log_info("isValidHostnameOrIp: The 'he' parameter has a value.");
 
-	log_info("isValidHostnameOrIp: Attempting to obtain a lock on the socket mutex...");
+	log_info(
+			"isValidHostnameOrIp: Attempting to obtain a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
-		log_info("isValidHostnameOrIp: Lock obtained on the socket mutex, or no mutex was created.");
+		log_info(
+				"isValidHostnameOrIp: Lock obtained on the socket mutex, or no mutex was created.");
 
-		log_info("isValidHostnameOrIp: Resolving host name or IP address '%s'...",
+		log_info(
+				"isValidHostnameOrIp: Resolving host name or IP address '%s'...",
 				hostnameOrIP);
 
 		if ((*he = gethostbyname(hostnameOrIP)) == NULL) {
@@ -408,13 +430,16 @@ int SocketDemoUtils_createTcpSocket() {
 
 	int sockFd = -1;
 
-	log_info("SocketDemoUtils_createTcpSocket: Attempting to obtain a lock on the socket mutex...");
+	log_info(
+			"SocketDemoUtils_createTcpSocket: Attempting to obtain a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
-		log_info("SocketDemoUtils_createTcpSocket: Socket mutex lock obtained, or we are not using it.");
+		log_info(
+				"SocketDemoUtils_createTcpSocket: Socket mutex lock obtained, or we are not using it.");
 
-		log_info("SocketDemoUtils_createTcpSocket: Attempting to create new TCP endpoint...");
+		log_info(
+				"SocketDemoUtils_createTcpSocket: Attempting to create new TCP endpoint...");
 
 		sockFd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockFd <= 0) {
@@ -430,7 +455,8 @@ int SocketDemoUtils_createTcpSocket() {
 			exit(ERROR);
 		}
 
-		log_debug("SocketDemoUtils_createTcpSocket: Attempting to release the socket mutex lock...");
+		log_debug(
+				"SocketDemoUtils_createTcpSocket: Attempting to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
 
@@ -446,7 +472,9 @@ int SocketDemoUtils_createTcpSocket() {
 	log_info(
 			"SocketDemoUtils_createTcpSocket: Endpoint configured to be reusable.");
 
-	log_info("SocketDemoUtils_createTcpSocket: The new socket file descriptor is %d.", sockFd);
+	log_info(
+			"SocketDemoUtils_createTcpSocket: The new socket file descriptor is %d.",
+			sockFd);
 
 	log_debug("SocketDemoUtils_createTcpSocket: Done.");
 
@@ -473,12 +501,14 @@ int SocketDemoUtils_setSocketReusable(int sockFd) {
 	log_info(
 			"SocketDemoUtils_setSocketReusable: A valid socket file descriptor has been passed.");
 
-	log_debug("SocketDemoUtils_setSocketReusable: Attempting to obtain a lock on the socket mutex...");
+	log_debug(
+			"SocketDemoUtils_setSocketReusable: Attempting to obtain a lock on the socket mutex...");
 
 	// Set socket options to allow the socket to be reused.
 	LockSocketMutex();
 	{
-		log_debug("SocketDemoUtils_setSocketReusable: Socket mutex lock obtained, or not using it.");
+		log_debug(
+				"SocketDemoUtils_setSocketReusable: Socket mutex lock obtained, or not using it.");
 
 		log_info(
 				"SocketDemoUtils_setSocketReusable: Attempting to set the socket as reusable...");
@@ -491,20 +521,24 @@ int SocketDemoUtils_setSocketReusable(int sockFd) {
 			log_error(
 					"SocketDemoUtils_setSocketReusable: Failed to mark socket as reusable.");
 
-			log_debug("SocketDemoUtils_setSocketReusable: Attempting to release the socket mutex lock...");
+			log_debug(
+					"SocketDemoUtils_setSocketReusable: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			log_debug("SocketDemoUtils_setSocketReusable: Socket mutex lock has been released.");
+			log_debug(
+					"SocketDemoUtils_setSocketReusable: Socket mutex lock has been released.");
 
 			log_debug("SocketDemoUtils_setSocketReusable: Done.");
 
 			return retval;
 		}
 
-		log_info("SocketDemoUtils_setSocketReusable: Socket configuration operation succeeded.");
+		log_info(
+				"SocketDemoUtils_setSocketReusable: Socket configuration operation succeeded.");
 
-		log_debug("SocketDemoUtils_setSocketReusable: Attempting to release the socket mutex lock...");
+		log_debug(
+				"SocketDemoUtils_setSocketReusable: Attempting to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
 
@@ -535,31 +569,38 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 
 	log_info("In SocketDemoUtils_populateServerAddrInfo");
 
-	log_debug("SocketDemoUtils_populateServerAddrInfo: Obtaining a lock on the socket mutex...");
+	log_debug(
+			"SocketDemoUtils_populateServerAddrInfo: Obtaining a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
-		log_debug("SocketDemoUtils_populateServerAddrInfo: Lock obtained on socket mutex or it's not needed.");
+		log_debug(
+				"SocketDemoUtils_populateServerAddrInfo: Lock obtained on socket mutex or it's not needed.");
 
 		log_info("SocketDemoUtils_populateServerAddrInfo: port = '%s'", port);
 
-		log_info("SocketDemoUtils_populateServerAddrInfo: Checking whether the 'port' parameter has a value...");
+		log_info(
+				"SocketDemoUtils_populateServerAddrInfo: Checking whether the 'port' parameter has a value...");
 
 		if (port == NULL || strlen(port) == 0 || port[0] == '\0') {
 			log_error(
 					"SocketDemoUtils_populateServerAddrInfo: String containing the port number is blank.");
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 
@@ -570,17 +611,21 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 			log_error(
 					"SocketDemoUtils_populateServerAddrInfo: Missing pointer to a sockaddr_in structure.");
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 
@@ -595,17 +640,21 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 			log_error(
 					"SocketDemoUtils_populateServerAddrInfo: Port number must be in the range 1024-49151 inclusive.");
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
-			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
+			log_debug(
+					"SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 
@@ -625,11 +674,13 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 				"SocketDemoUtils_populateServerAddrInfo: Server configured to listen on port %d.",
 				portnum);
 
-		log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
+		log_debug(
+				"SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
 
-	log_debug("SocketDemoUtils_populateServerAddrInfo: The socket mutex lock has been released.");
+	log_debug(
+			"SocketDemoUtils_populateServerAddrInfo: The socket mutex lock has been released.");
 
 	log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 }
@@ -663,13 +714,16 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 
 			perror("SocketDemoUtils_bind");
 
-			log_debug("SocketDemoUtils_bind: Attempting to release the socket mutex lock...");
+			log_debug(
+					"SocketDemoUtils_bind: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			log_debug("SocketDemoUtils_bind: Socket mutex lock has been released.");
+			log_debug(
+					"SocketDemoUtils_bind: Socket mutex lock has been released.");
 
-			log_debug("SocketDemoUtils_bind: Attempting to free socket mutex resources...");
+			log_debug(
+					"SocketDemoUtils_bind: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -696,13 +750,16 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 
 			perror("SocketDemoUtils_bind");
 
-			log_debug("SocketDemoUtils_bind: Attempting to release the socket mutex lock...");
+			log_debug(
+					"SocketDemoUtils_bind: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			log_debug("SocketDemoUtils_bind: Socket mutex lock has been released.");
+			log_debug(
+					"SocketDemoUtils_bind: Socket mutex lock has been released.");
 
-			log_debug("SocketDemoUtils_bind: Attempting to free socket mutex resources...");
+			log_debug(
+					"SocketDemoUtils_bind: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -713,7 +770,8 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 			exit(ERROR);
 		}
 
-		log_info("SocketDemoUtils_bind: A valid sockaddr_in reference has been passed.");
+		log_info(
+				"SocketDemoUtils_bind: A valid sockaddr_in reference has been passed.");
 
 		log_info(
 				"SocketDemoUtils_bind: Attempting to bind socket %d to the server address...",
@@ -730,13 +788,16 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 
 			perror("SocketDemoUtils_bind");
 
-			log_debug("SocketDemoUtils_bind: Attempting to release the socket mutex lock...");
+			log_debug(
+					"SocketDemoUtils_bind: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			log_debug("SocketDemoUtils_bind: Socket mutex lock has been released.");
+			log_debug(
+					"SocketDemoUtils_bind: Socket mutex lock has been released.");
 
-			log_debug("SocketDemoUtils_bind: Attempting to free socket mutex resources...");
+			log_debug(
+					"SocketDemoUtils_bind: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -749,9 +810,14 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 
 		log_info("SocketDemoUtils_bind: Successfully bound the server socket.");
 
-		log_info("SocketDemoUtils_bind: Returning %d", retval);
+		log_debug(
+				"SocketDemoUtils_bind: Attemtping to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
+
+	log_debug("SocketDemoUtils_bind: Released the socket mutex lock.");
+
+	log_info("SocketDemoUtils_bind: Returning %d", retval);
 
 	log_debug("SocketDemoUtils_bind: Done.");
 
@@ -900,7 +966,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	}
 
 	/*log_info(
-			"SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");*/
+	 "SocketDemoUtils_accept: Configuring server TCP endpoint to be non-blocking...");*/
 
 // Attempt to configure the server socket to be non-blocking, this way
 // we can hopefully receive data as it is being sent vs only getting
@@ -911,7 +977,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 	 }*/
 
 	/*log_info(
-			"SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");*/
+	 "SocketDemoUtils_accept: Server TCP endpoint configured to be non-blocking.");*/
 
 	log_info("SocketDemoUtils_accept: New client connected.");
 
