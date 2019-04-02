@@ -1001,6 +1001,12 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 
 		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
 
+		log_debug("SocketDemoUtils_accept: Attempting to close the server endpoint...");
+
+		SocketDemoUtils_close(sockFd);
+
+		log_debug("SocketDemoUtils_accept: Server endpoint resources released.");
+
 		log_debug("SocketDemoUtils_accept: Done.");
 
 		exit(ERROR);
@@ -1030,6 +1036,12 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 		FreeSocketMutex();
 
 		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
+
+		log_debug("SocketDemoUtils_accept: Attempting to close the server endpoint...");
+
+		SocketDemoUtils_close(sockFd);
+
+		log_debug("SocketDemoUtils_accept: Server endpoint resources released.");
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
