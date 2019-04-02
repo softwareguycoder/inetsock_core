@@ -713,6 +713,8 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr) {
 			exit(ERROR);
 		}
 
+		log_info("SocketDemoUtils_bind: A valid sockaddr_in reference has been passed.");
+
 		log_info(
 				"SocketDemoUtils_bind: Attempting to bind socket %d to the server address...",
 				sockFd);
