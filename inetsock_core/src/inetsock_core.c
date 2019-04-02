@@ -1001,11 +1001,13 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 
 		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
 
-		log_debug("SocketDemoUtils_accept: Attempting to close the server endpoint...");
+		log_debug(
+				"SocketDemoUtils_accept: Attempting to close the server endpoint...");
 
 		SocketDemoUtils_close(sockFd);
 
-		log_debug("SocketDemoUtils_accept: Server endpoint resources released.");
+		log_debug(
+				"SocketDemoUtils_accept: Server endpoint resources released.");
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
@@ -1037,11 +1039,13 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 
 		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
 
-		log_debug("SocketDemoUtils_accept: Attempting to close the server endpoint...");
+		log_debug(
+				"SocketDemoUtils_accept: Attempting to close the server endpoint...");
 
 		SocketDemoUtils_close(sockFd);
 
-		log_debug("SocketDemoUtils_accept: Server endpoint resources released.");
+		log_debug(
+				"SocketDemoUtils_accept: Server endpoint resources released.");
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
@@ -1087,7 +1091,8 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 
 	int total_read = 0;
 
-	log_debug("SocketDemoUtils_recv: Attempting to obtain a lock on the socket mutex...");
+	log_debug(
+			"SocketDemoUtils_recv: Attempting to obtain a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
@@ -1160,20 +1165,26 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 		log_info(
 				"SocketDemoUtils_recv: Valid memory storage reference passed for receive buffer.");
 
-		int bytes_read = 0;
+		log_info("SocketDemoUtils_recv: Initializing the receive buffer...")
 
-		log_info(
-				"SocketDemoUtils_recv: Allocating %d bytes for receive buffer...",
-				RECV_BLOCK_SIZE);
+		int bytes_read = 0;
 
 		// Allocate up some brand-new storage of size RECV_BLOCK_SIZE
 		// plus an extra slot to hold the null-terminator.  Free any
 		// storage already referenced by *buf.  If *buf happens to be
 		// NULL already, a malloc is done.  Once the new memory has been
 		// allocated, we then explicitly zero it out.
+		int initial_recv_buffer_size = RECV_BLOCK_SIZE + 1;
+
+		log_info("SocketDemoUtils_recv: Allocating %d B for receive buffer...",
+				initial_recv_buffer_size);
+
 		total_read = 0;
-		*buf = (char*) realloc(*buf, (RECV_BLOCK_SIZE + 1) * sizeof(char));
-		explicit_bzero((void*) *buf, RECV_BLOCK_SIZE + 1);
+		*buf = (char*) realloc(*buf, initial_recv_buffer_size * sizeof(char));
+		explicit_bzero((void*) *buf, initial_recv_buffer_size);
+
+		log_info("SocketDemoUtils_recv: Allocated %d B for receive buffer.",
+				initial_recv_buffer_size);
 
 		//char prevch = '\0';
 		while (1) {
@@ -1183,8 +1194,10 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 				if (errno == EAGAIN || errno == EWOULDBLOCK)
 					continue;
 
-				error(
-						"recv: Network error stopped us from receiving more text.");
+				log_warning(
+						"SocketDemoUtils_recv: Network error stopped us from receiving more text.");
+
+				log_info("SocketDemoUtils_recv: Breaking out of recv loop...");
 
 				//prevch = ch;
 				break;
@@ -1203,35 +1216,65 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 			// If the newline ('\n') character was the char received,
 			// then we're done; it's time to apply the null terminator.
 			if (ch == '\n') {
+				log_info("SocketDemoUtils_recv: Newline encountered.");
+
+				log_info("SocketDemoUtils_recv: Breaking out of recv loop...");
+
 				break;
 			}
 
+			log_info("SocketDemoUtils_recv: Char received: '%c'", ch);
+
+			log_info("SocketDemoUtils_recv: Expanding buffer to fit next char...");
+
 			// re-allocate more memory and make sure to leave room
 			// for the null-terminator.
-			*buf = (char*) realloc(*buf,
-					(total_read + RECV_BLOCK_SIZE + 1) * sizeof(char));
+
+			int new_recv_buffer_size = (total_read + RECV_BLOCK_SIZE + 1)
+					* sizeof(char);
+
+			*buf = (char*) realloc(*buf, new_recv_buffer_size);
+
+			log_info("SocketDemoUtils_recv: New receive buffer size is: %d B.",
+					new_recv_buffer_size);
 		}
 
+		log_info("SocketDemoUtils_recv: %d B have been received.", total_read);
+
+		log_info(
+				"SocketDemoUtils_recv: Checking whether bytes received is a positive quantity...");
+
 		if (total_read > 0) {
+			log_info(
+					"SocketDemoUtils_recv: Bytes received is a positive quantity.");
+
 			// We are done receiving, cap the string off with a null terminator
 			// after resizing the buffer to match the total bytes read + 1.  if
 			// a connection error happened prior to reading even one byte, then
 			// total_read will be zero and the call below will be equivalent to
 			// free.  strlen(*buf) will then return zero, and this will be
 			// how we can tell not to call free() again on *buf
+
 			*buf = (char*) realloc(*buf, (total_read + 1) * sizeof(char));
 			*(*buf + total_read) = '\0';// cap the buffer off with the null-terminator
+
+			log_debug(
+					"SocketDemoUtils_recv: Finished placing content into receive buffer.");
 		}
 
-		log_info("SocketDemoUtils_recv: %d bytes received.", total_read);
+		log_info("SocketDemoUtils_recv: %d B received in total.", total_read);
 
 		// Now the storage at address *buf should contain the entire
 		// line just received, plus the newline and the null-terminator, plus
 		// any previously-received data
+
+		log_debug("SocketDemoUtils_recv: Releasing socket mutex...");
 	}
 	UnlockSocketMutex();
 
-	log_debug("SocketDemoUtils_recv: Returning %d", total_read);
+	log_debug("SocketDemoUtils_recv: Socket mutex releaed.");
+
+	log_debug("SocketDemoUtils_recv: Returning %d (total bytes read)", total_read);
 
 	log_debug("SocketDemoUtils_recv: Done.");
 
