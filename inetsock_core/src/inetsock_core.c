@@ -1336,9 +1336,35 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 			exit(ERROR);
 		}
 
+		log_info("send_all: A valid socket file descriptor was passed.");
+
+		log_info("send_all: Checking whether the buffer of text to send is empty...");
+
 		if (buffer == NULL || ((char*) buffer)[0] == '\0'
 				|| strlen((char*) buffer) == 0) {
-			fprintf(stderr, "send_all: Empty buffer supplied.\n");
+			log_error("send_all: Send buferr is empty.  This value is required.");
+
+			errno = EINVAL;
+
+			perror("send_all");
+
+			log_debug(
+					"send_all: Attempting to release the socket mutex lock...");
+
+			UnlockSocketMutex();
+
+			log_debug(
+					"send_all: Socket mutex lock has been released.");
+
+			log_debug(
+					"send_all: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("send_all: Socket mutex resources freed.");
+
+			log_debug("send_all: Done.");
+
 			exit(ERROR);
 		}
 
