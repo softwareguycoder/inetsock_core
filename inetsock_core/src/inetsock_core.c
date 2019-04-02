@@ -1274,7 +1274,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 
 	log_debug("SocketDemoUtils_recv: Socket mutex releaed.");
 
-	log_debug("SocketDemoUtils_recv: Returning %d (total bytes read)", total_read);
+	log_debug("SocketDemoUtils_recv: Returning %d (total B read)", total_read);
 
 	log_debug("SocketDemoUtils_recv: Done.");
 
