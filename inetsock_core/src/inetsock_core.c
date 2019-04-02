@@ -1087,20 +1087,41 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 
 	int total_read = 0;
 
+	log_debug("SocketDemoUtils_recv: Attempting to obtain a lock on the socket mutex...");
+
 	LockSocketMutex();
 	{
-		log_debug("SocketDemoUtils_recv: sockFd = %d", sockFd);
+		log_debug("SocketDemoUtils_recv: Socket mutex lock obtained.");
 
 		log_info(
 				"SocketDemoUtils_recv: Checking whether the socket file descriptor passed is valid...");
+
+		log_debug("SocketDemoUtils_recv: sockFd = %d", sockFd);
 
 		if (sockFd <= 0) {
 			log_error(
 					"SocketDemoUtils_recv: Invalid socket file descriptor passed.");
 
-			log_debug("SocketDemoUtils_recv: Done.");
+			errno = EBADF;
+
+			perror("SocketDemoUtils_recv");
+
+			log_debug(
+					"SocketDemoUtils_recv: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
+
+			log_debug(
+					"SocketDemoUtils_recv: Socket mutex lock has been released.");
+
+			log_debug(
+					"SocketDemoUtils_recv: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_recv: Socket mutex resources freed.");
+
+			log_debug("SocketDemoUtils_recv: Done.");
 
 			exit(ERROR);
 		}
@@ -1114,9 +1135,24 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 			log_error(
 					"SocketDemoUtils_recv: Null reference passed for receive buffer.");
 
-			log_debug("SocketDemoUtils_recv: Done.");
+			perror("SocketDemoUtils_recv");
+
+			log_debug(
+					"SocketDemoUtils_recv: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
+
+			log_debug(
+					"SocketDemoUtils_recv: Socket mutex lock has been released.");
+
+			log_debug(
+					"SocketDemoUtils_recv: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_recv: Socket mutex resources freed.");
+
+			log_debug("SocketDemoUtils_recv: Done.");
 
 			exit(ERROR);
 		}
