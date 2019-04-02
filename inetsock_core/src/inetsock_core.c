@@ -1463,6 +1463,8 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 	log_info("send_all: Result = %d B total sent.", total_bytes_sent);
 
+	log_debug("send_all: Done.");
+
 	return total_bytes_sent;
 }
 
@@ -1479,10 +1481,10 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 int SocketDemoUtils_send(int sockFd, const char *buf) {
 	log_debug("In SocketDemoUtils_send");
 
-	log_info("SocketDemoUtils_send: sockFd = %d", sockFd);
-
 	log_info(
 			"SocketDemoUtils_send: Checking whether we have been passed a valid socket file descriptor...");
+
+	log_debug("SocketDemoUtils_send: sockFd = %d", sockFd);
 
 	if (sockFd <= 0) {
 		log_error(
@@ -1515,15 +1517,36 @@ int SocketDemoUtils_send(int sockFd, const char *buf) {
 		return 0;
 	}
 
+	log_info("SocketDemoUtils_send: We were supplied with text for sending.");
+
 	int buf_len = strlen(buf);
+
+	log_info("SocketDemoUtils_send: buf_len = %d", buf_len);
+
+	log_info("SocketDemoUtils_send: Now attempting the send operation...");
 
 	int bytes_sent = send_all(sockFd, buf, buf_len);
 
+	log_info("SocketDemoUtils_send: Sent %d bytes.", bytes_sent);
+
 	if (bytes_sent < 0) {
+		log_error("SocketDemoUtils_send: Failed to send data.");
+
 		error_and_close(sockFd, "SocketDemoUtils_send: Failed to send data.");
+
+		log_debug(
+				"SocketDemoUtils_send: Attempting to free socket mutex resources...");
+
+		FreeSocketMutex();
+
+		log_debug("SocketDemoUtils_send: Socket mutex resources freed.");
+
+		log_debug("SocketDemoUtils_send: Done.");
+
+		exit(ERROR);
 	}
 
-	log_info("SocketDemoUtils_send: %d bytes sent.", bytes_sent);
+	log_info("SocketDemoUtils_send: %d B sent.", bytes_sent);
 
 	log_debug("SocketDemoUtils_send: Done.");
 
