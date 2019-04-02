@@ -204,7 +204,11 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he) {
 
 	if (hostnameOrIP == NULL || hostnameOrIP[0] == '\0'
 			|| strlen(hostnameOrIP) == 0) {
-		log_error("hostnameOrIP parameter is blank.");
+		// The hostnameOrIP parameter cannot be blank, since we need to find
+		// out if the hostname or IP supplied is valid.  Can't very well do that
+		// for a blank value!
+
+		log_error("hostnameOrIP parameter is blank.  This parameter is required to have a value.");
 
 		log_debug("isValidHostnameOrIp: Returning FALSE.");
 
