@@ -535,11 +535,31 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 
 	log_info("In SocketDemoUtils_populateServerAddrInfo");
 
+	log_debug("SocketDemoUtils_populateServerAddrInfo: Obtaining a lock on the socket mutex...");
+
 	LockSocketMutex();
 	{
+		log_debug("SocketDemoUtils_populateServerAddrInfo: Lock obtained on socket mutex or it's not needed.");
+
+		log_info("SocketDemoUtils_populateServerAddrInfo: port = '%s'", port);
+
+		log_info("SocketDemoUtils_populateServerAddrInfo: Checking whether the 'port' parameter has a value...");
+
 		if (port == NULL || strlen(port) == 0 || port[0] == '\0') {
 			log_error(
 					"SocketDemoUtils_populateServerAddrInfo: String containing the port number is blank.");
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
+
+			UnlockSocketMutex();
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 
@@ -549,6 +569,18 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 		if (addr == NULL) {
 			log_error(
 					"SocketDemoUtils_populateServerAddrInfo: Missing pointer to a sockaddr_in structure.");
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
+
+			UnlockSocketMutex();
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 
@@ -562,6 +594,18 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 		if (result >= 0 && !isUserPortValid(portnum)) {
 			log_error(
 					"SocketDemoUtils_populateServerAddrInfo: Port number must be in the range 1024-49151 inclusive.");
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
+
+			UnlockSocketMutex();
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex lock has been released.");
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_populateServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 
@@ -580,8 +624,12 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port,
 		log_info(
 				"SocketDemoUtils_populateServerAddrInfo: Server configured to listen on port %d.",
 				portnum);
+
+		log_debug("SocketDemoUtils_populateServerAddrInfo: Attempting to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
+
+	log_debug("SocketDemoUtils_populateServerAddrInfo: The socket mutex lock has been released.");
 
 	log_debug("SocketDemoUtils_populateServerAddrInfo: Done.");
 }
