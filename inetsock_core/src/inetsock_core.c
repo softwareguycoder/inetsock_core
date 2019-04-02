@@ -1293,7 +1293,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 int send_all(int sockFd, const char *buffer, size_t length) {
 	log_debug("In send_all");
 
-	int total_bytes_sent = ERROR;
+	int total_bytes_sent = 0;
 
 	log_debug("send_all: Getting lock on socket mutex...");
 
@@ -1368,8 +1368,36 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 			exit(ERROR);
 		}
 
+		log_info("send_all: The send buffer is not empty.");
+
+		log_info("send_all: Checking whether the send buffer's size is a positive value...");
+
+		log_info("send_all: length = %d", (int)length);
+
 		if ((int) length <= 0) {
-			fprintf(stderr, "send_all: Length must be a positive number.\n");
+			log_error("send_all: Length should be a positive nonzero quanity.");
+
+			errno = EINVAL;
+
+			perror("send_all");
+
+			log_debug(
+					"send_all: Attempting to release the socket mutex lock...");
+
+			UnlockSocketMutex();
+
+			log_debug(
+					"send_all: Socket mutex lock has been released.");
+
+			log_debug(
+					"send_all: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("send_all: Socket mutex resources freed.");
+
+			log_debug("send_all: Done.");
+
 			exit(ERROR);
 		}
 
@@ -1377,31 +1405,74 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 		int remaining = (int) length;
 
+		log_info("send_all: Starting send loop...");
+
+		log_debug("send_all: total_bytes_sent = %d B", total_bytes_sent);
+
+		log_debug("send_all: remaining = %d B", remaining);
+
 		while (total_bytes_sent < remaining) {
+			log_info("send_all: Calling socket send function...");
+
 			int bytes_sent = send(sockFd, ptr, length, 0);
+
+			log_debug("send_all: bytes_sent = %d B", bytes_sent);
+
 			if (bytes_sent < 1) {
 				perror("send_all");
-				fprintf(stderr, "send_all: Failed to send.\n");
+
+				log_debug(
+						"send_all: Attempting to release the socket mutex lock...");
+
+				UnlockSocketMutex();
+
+				log_debug(
+						"send_all: Socket mutex lock has been released.");
+
+				log_debug(
+						"send_all: Attempting to free socket mutex resources...");
+
+				FreeSocketMutex();
+
+				log_debug("send_all: Socket mutex resources freed.");
+
+				log_debug("send_all: Done.");
+
 				exit(ERROR);
 			}
+
+			log_debug("send_all: Updating counters...");
+
 			total_bytes_sent += bytes_sent;
 
 			ptr += bytes_sent;
 			remaining -= bytes_sent;
+
+			log_debug("send_all: total_bytes_sent = %d B", total_bytes_sent);
+
+			log_debug("send_all: remaining = %d B", remaining);
 		}
+
+		log_debug("send_all: Sending complete.");
+
+		log_debug("send_all: Releasing socket mutex lock...");
 	}
 	UnlockSocketMutex();
+
+	log_debug("send_all: Socket mutex lock released.");
+
+	log_info("send_all: Result = %d B total sent.", total_bytes_sent);
 
 	return total_bytes_sent;
 }
 
 /**
- *	\brief Sends data to the endpoint on the other end of the connection referenced
+ *	@brief Sends data to the endpoint on the other end of the connection referenced
  *	by the connected socket.
- *	\param sockFd Socket file descriptor.  Must be a descriptor for a valid socket that
+ *	@param sockFd Socket file descriptor.  Must be a descriptor for a valid socket that
  *	is currently connected to a remote host.
- *	\param buf Address of a character array containing the bytes to be sent.
- *	\returns ERROR if the operation failed; number of bytes sent otherwise.
+ *	@param buf Address of a character array containing the bytes to be sent.
+ *	@returns ERROR if the operation failed; number of bytes sent otherwise.
  *	If the ERROR value is returned, errno should be examined to determine the
  *  cause of the error.
  */
