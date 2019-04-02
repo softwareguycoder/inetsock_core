@@ -893,14 +893,35 @@ int SocketDemoUtils_listen(int sockFd) {
 		if (retval < 0) {
 			log_error("SocketDemoUtils_listen: Failed to listen on socket.");
 
-			log_debug("SocketDemoUtils_listen: Done.");
+			perror("SocketDemoUtils_listen");
+
+			log_debug(
+					"SocketDemoUtils_listen: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
-			return ERROR;   // Invalid socket file descriptor
+			log_debug(
+					"SocketDemoUtils_listen: Socket mutex lock has been released.");
+
+			log_debug(
+					"SocketDemoUtils_listen: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_listen: Socket mutex resources freed.");
+
+			log_debug("SocketDemoUtils_listen: Done.");
+
+			exit(ERROR);
 		}
+
+		log_info("SocketDemoUtils_listen: Listen operation successful.");
+
+		log_debug("SocketDemoUtils_listen: Releasing the socket mutex lock...");
 	}
 	UnlockSocketMutex();
+
+	log_debug("SocketDemoUtils_listen: Socket mutex lock released.");
 
 	log_info("SocketDemoUtils_listen: Returning %d", retval);
 
