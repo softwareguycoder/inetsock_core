@@ -1165,7 +1165,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 		log_info(
 				"SocketDemoUtils_recv: Valid memory storage reference passed for receive buffer.");
 
-		log_info("SocketDemoUtils_recv: Initializing the receive buffer...")
+		log_info("SocketDemoUtils_recv: Initializing the receive buffer...");
 
 		int bytes_read = 0;
 
