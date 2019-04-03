@@ -1674,7 +1674,7 @@ void SocketDemoUtils_close(int sockFd) {
 
 	if (!isValidSocket(sockFd)) {
 		log_error(
-				"SocketDemoUtils_close: Attempted to connect to remote host with no endpoint.");
+				"SocketDemoUtils_close: Valid socket file descriptor not passed.");
 
 		return;	// just silently fail if the socket file descriptor passed is invalid
 	}
