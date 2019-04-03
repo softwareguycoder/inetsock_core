@@ -41,7 +41,7 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.so.debug.41679718" name="Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="cdt.managedbuild.config.gnu.so.debug" postannouncebuildStep="" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;/home/bhart/lib/Debug&quot;;">
+                <configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.so.debug.41679718" name="Debug" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="cdt.managedbuild.config.gnu.so.debug" postannouncebuildStep="" postbuildStep="cp -f ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;/home/bhart/lib/Debug&quot;;">
                     					
                     <folderInfo id="cdt.managedbuild.config.gnu.so.debug.41679718." name="/" resourcePath="">
                         						
@@ -89,7 +89,7 @@
                                     								
                                 </option>
                                 								
-                                <option id="gnu.c.compiler.option.pthread.392944455" superClass="gnu.c.compiler.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
+                                <option id="gnu.c.compiler.option.pthread.392944455" name="Support for pthread (-pthread)" superClass="gnu.c.compiler.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1756062350" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -281,7 +281,7 @@
                                     								
                                 </option>
                                 								
-                                <option id="gnu.c.compiler.option.pthread.1511050250" superClass="gnu.c.compiler.option.pthread" value="true" valueType="boolean"/>
+                                <option id="gnu.c.compiler.option.pthread.1511050250" name="Support for pthread (-pthread)" superClass="gnu.c.compiler.option.pthread" useByScannerDiscovery="false" value="true" valueType="boolean"/>
                                 								
                                 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.422624779" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
                                 							
@@ -409,6 +409,20 @@
     	
     <storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
     	
-    <storageModule moduleId="refreshScope"/>
+    <storageModule moduleId="refreshScope" versionNumber="2">
+        		
+        <configuration configurationName="Debug">
+            			
+            <resource resourceType="PROJECT" workspacePath="/inetsock_core"/>
+            		
+        </configuration>
+        		
+        <configuration configurationName="Release">
+            			
+            <resource resourceType="PROJECT" workspacePath="/inetsock_core"/>
+            		
+        </configuration>
+        	
+    </storageModule>
     
 </cproject>
