@@ -67,7 +67,8 @@ void CreateSocketMutex() {
 		exit(ERROR);
 	}
 
-	log_info("CreateSocketMutex: Successfully initialized the socket mutex handle.");
+	log_info(
+			"CreateSocketMutex: Successfully initialized the socket mutex handle.");
 
 	log_debug("CreateSocketMutex: Done.");
 }
@@ -1034,22 +1035,22 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 
 		if (EBADF != errno) {
 			perror("SocketDemoUtils_accept");
+
+			log_debug(
+					"SocketDemoUtils_accept: Attempting to free socket mutex resources...");
+
+			FreeSocketMutex();
+
+			log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
+
+			log_debug(
+					"SocketDemoUtils_accept: Attempting to close the server endpoint...");
+
+			SocketDemoUtils_close(sockFd);
+
+			log_debug(
+					"SocketDemoUtils_accept: Server endpoint resources released.");
 		}
-
-		log_debug(
-				"SocketDemoUtils_accept: Attempting to free socket mutex resources...");
-
-		FreeSocketMutex();
-
-		log_debug("SocketDemoUtils_accept: Socket mutex resources freed.");
-
-		log_debug(
-				"SocketDemoUtils_accept: Attempting to close the server endpoint...");
-
-		SocketDemoUtils_close(sockFd);
-
-		log_debug(
-				"SocketDemoUtils_accept: Server endpoint resources released.");
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
@@ -1322,8 +1323,7 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 		if (sockFd <= 0) {
 			log_error("send_all: Invalid socket file descriptor.");
 
-			log_error(
-					"send_all: Invalid socket file descriptor passed.");
+			log_error("send_all: Invalid socket file descriptor passed.");
 
 			errno = EBADF;
 
@@ -1334,11 +1334,9 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"send_all: Socket mutex lock has been released.");
+			log_debug("send_all: Socket mutex lock has been released.");
 
-			log_debug(
-					"send_all: Attempting to free socket mutex resources...");
+			log_debug("send_all: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -1351,11 +1349,13 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 		log_info("send_all: A valid socket file descriptor was passed.");
 
-		log_info("send_all: Checking whether the buffer of text to send is empty...");
+		log_info(
+				"send_all: Checking whether the buffer of text to send is empty...");
 
 		if (buffer == NULL || ((char*) buffer)[0] == '\0'
 				|| strlen((char*) buffer) == 0) {
-			log_error("send_all: Send buferr is empty.  This value is required.");
+			log_error(
+					"send_all: Send buferr is empty.  This value is required.");
 
 			errno = EINVAL;
 
@@ -1366,11 +1366,9 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"send_all: Socket mutex lock has been released.");
+			log_debug("send_all: Socket mutex lock has been released.");
 
-			log_debug(
-					"send_all: Attempting to free socket mutex resources...");
+			log_debug("send_all: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -1383,9 +1381,10 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 		log_info("send_all: The send buffer is not empty.");
 
-		log_info("send_all: Checking whether the send buffer's size is a positive value...");
+		log_info(
+				"send_all: Checking whether the send buffer's size is a positive value...");
 
-		log_info("send_all: length = %d", (int)length);
+		log_info("send_all: length = %d", (int) length);
 
 		if ((int) length <= 0) {
 			log_error("send_all: Length should be a positive nonzero quanity.");
@@ -1399,11 +1398,9 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"send_all: Socket mutex lock has been released.");
+			log_debug("send_all: Socket mutex lock has been released.");
 
-			log_debug(
-					"send_all: Attempting to free socket mutex resources...");
+			log_debug("send_all: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -1439,8 +1436,7 @@ int send_all(int sockFd, const char *buffer, size_t length) {
 
 				UnlockSocketMutex();
 
-				log_debug(
-						"send_all: Socket mutex lock has been released.");
+				log_debug("send_all: Socket mutex lock has been released.");
 
 				log_debug(
 						"send_all: Attempting to free socket mutex resources...");
@@ -1682,11 +1678,13 @@ void SocketDemoUtils_close(int sockFd) {
 	log_info(
 			"SocketDemoUtils_close: A valid socket file descriptor was passed.");
 
-	log_info("SocketDemoUtils_close: Attempting to shut down the socket with file descriptor %d...",
+	log_info(
+			"SocketDemoUtils_close: Attempting to shut down the socket with file descriptor %d...",
 			sockFd);
 
 	if (OK != shutdown(sockFd, SHUT_RD)) {
-		log_error("SocketDemoUtils_close: Failed to shut down the socket with file descriptor %d.",
+		log_error(
+				"SocketDemoUtils_close: Failed to shut down the socket with file descriptor %d.",
 				sockFd);
 
 		log_debug("SocketDemoUtils_close: Done.");
