@@ -1032,7 +1032,9 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 		log_error(
 				"SocketDemoUtils_accept: Invalid value returned from accept.");
 
-		perror("SocketDemoUtils_accept");
+		if (EBADF != errno) {
+			perror("SocketDemoUtils_accept");
+		}
 
 		log_debug(
 				"SocketDemoUtils_accept: Attempting to free socket mutex resources...");
@@ -1051,7 +1053,16 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr) {
 
 		log_debug("SocketDemoUtils_accept: Done.");
 
-		exit(ERROR);
+		/* If errno is EBADF, this is just from a thread being terminated outside of this
+		 * accept() call. In this case, merely return an invalid socket file descriptor
+		 * value instead of forcibly terminating the program.  If errno is anything else
+		 * besides EBADF, then forcibly exit. */
+
+		if (EBADF == errno) {
+			return ERROR;
+		} else {
+			exit(ERROR);
+		}
 	}
 
 	/*log_info(
@@ -1670,6 +1681,20 @@ void SocketDemoUtils_close(int sockFd) {
 
 	log_info(
 			"SocketDemoUtils_close: A valid socket file descriptor was passed.");
+
+	log_info("SocketDemoUtils_close: Attempting to shut down the socket with file descriptor %d...",
+			sockFd);
+
+	if (OK != shutdown(sockFd, SHUT_RD)) {
+		log_error("SocketDemoUtils_close: Failed to shut down the socket with file descriptor %d.",
+				sockFd);
+
+		log_debug("SocketDemoUtils_close: Done.");
+
+		return;
+	}
+
+	log_info("SocketDemoUtils_close: Socket shut down successfully.");
 
 	log_info("SocketDemoUtils_close: Attempting to close the socket...");
 
