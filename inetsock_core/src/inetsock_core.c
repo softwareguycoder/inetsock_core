@@ -1209,7 +1209,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf) {
 					continue;
 
 				log_warning(
-						"SocketDemoUtils_recv: Network error stopped us from receiving more text.");
+						"SocketDemoUtils_recv: Stopped receiving more text.");
 
 				log_info("SocketDemoUtils_recv: Breaking out of recv loop...");
 
