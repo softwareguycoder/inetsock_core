@@ -67,6 +67,8 @@ void CreateSocketMutex() {
 		exit(ERROR);
 	}
 
+	log_info("CreateSocketMutex: Successfully initialized the socket mutex handle.");
+
 	log_debug("CreateSocketMutex: Done.");
 }
 
