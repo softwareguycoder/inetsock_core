@@ -1588,9 +1588,9 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 	log_info(
 			"SocketDemoUtils_connect: Checking for a valid socket file descriptor...");
 
-	if (sockFd <= 0) {
+	if (!isValidSocket(sockFd)) {
 		log_error(
-				"connect: Attempted to connect to remote host with no endpoint.");
+				"SocketDemoUtils_connect: Attempted to connect to remote host with no endpoint.");
 		exit(result);
 	}
 
