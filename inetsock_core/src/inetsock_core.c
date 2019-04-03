@@ -1672,7 +1672,7 @@ void SocketDemoUtils_close(int sockFd) {
 	log_info(
 			"SocketDemoUtils_close: Checking for a valid socket file descriptor...");
 
-	if (sockFd <= 0) {
+	if (!isValidSocket(sockFd)) {
 		log_error(
 				"SocketDemoUtils_close: Attempted to connect to remote host with no endpoint.");
 
