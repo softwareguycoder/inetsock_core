@@ -5,6 +5,8 @@
 #include "stdafx.h"
 #include "inetsock_core.h"
 
+#define CONNECT_OPERATION_FAILED "connect: Failed to contact server on '%s' and port %d.\n"
+
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
 void CreateSocketMutex() {
@@ -1672,6 +1674,12 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 			log_debug("SocketDemoUtils_connect: Done.");
 
 			SocketDemoUtils_close(sockFd);
+
+			/* If we are logging to a file and not the screen, print a message on the
+			 * screen for an interactive user that the connect operation failed. */
+			if (get_log_file_handle() != stdout) {
+				fprintf(stdout, CONNECT_OPERATION_FAILED, hostnameOrIp, port);
+			}
 
 			exit(ERROR);
 		}
