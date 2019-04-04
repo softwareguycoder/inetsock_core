@@ -1679,6 +1679,8 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 				fprintf(stdout, CONNECT_OPERATION_FAILED, hostnameOrIp, port);
 			}
 
+			close_log_file_handles();
+
 			log_debug("SocketDemoUtils_connect: Done.");
 
 			exit(ERROR);
