@@ -91,7 +91,12 @@ void FreeSocketMutex() {
 	log_debug(
 			"FreeSocketMutex: The g_pSocketMutex has a valid pthread_mutex_t reference.");
 
-	log_debug("FreeSocketMutex: Attempting to destroy the socket mutex...");
+	/* Destroy the mutex handle for socket use.  We are utilizing the bare-bones pthread_mutex_t
+	 * type and pthread_mutex_destory system API, rather than the functions exported by the mutex_core
+	 * library.  This is to avoid an unncessary dependency.  That is, I do not want to have to drag
+	 * in the mutex library every single time I want to use this inetsock_core library. */
+
+	log_info("FreeSocketMutex: Attempting to destroy the socket mutex...");
 
 	int retval = pthread_mutex_destroy(g_pSocketMutex);
 	if (retval != OK) {
@@ -100,8 +105,7 @@ void FreeSocketMutex() {
 		exit(ERROR);
 	}
 
-	log_debug("FreeSocketMutex: retval from pthread_mutex_destroy = %d",
-			retval);
+	log_info("FreeSocketMutex: Mutex destroyed successfully.");
 
 	log_debug(
 			"FreeSocketMutex: Attempting to release the resources associated with the g_pSocketMutex handle...");
