@@ -1632,30 +1632,59 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 			"SocketDemoUtils_connect: The hostname or IP address passed could be resolved.");
 
 	log_info(
-			"SocketDemoUtils_connect: Attempting to contact the server at '%s' on port %d...",
-			hostnameOrIp, port);
+			"SocketDemoUtils_connect: Obtaining a lock on the socket mutex...");
 
-	/* copy the network address to sockaddr_in structure */
-	memcpy(&server_address.sin_addr, he->h_addr_list[0], he->h_length);
-	server_address.sin_family = AF_INET;
-	server_address.sin_port = htons(port);
+	LockSocketMutex();
+	{
+		log_info(
+				"SocketDemoUtils_connect: Lock on socket mutex obtained, or it was not necessary.");
 
-	if ((result = connect(sockFd, (struct sockaddr*) &server_address,
-			sizeof(server_address))) < 0) {
-		log_error(
-				"SocketDemoUtils_connect: The attempt to contact the server at '%s' on port %d failed.",
+		log_info(
+				"SocketDemoUtils_connect: Attempting to contact the server at '%s' on port %d...",
 				hostnameOrIp, port);
 
-		log_debug("SocketDemoUtils_connect: Done.");
+		/* copy the network address to sockaddr_in structure */
+		memcpy(&server_address.sin_addr, he->h_addr_list[0], he->h_length);
+		server_address.sin_family = AF_INET;
+		server_address.sin_port = htons(port);
 
-		SocketDemoUtils_close(sockFd);
+		if ((result = connect(sockFd, (struct sockaddr*) &server_address,
+				sizeof(server_address))) < 0) {
+			log_error(
+					"SocketDemoUtils_connect: The attempt to contact the server at '%s' on port %d failed.",
+					hostnameOrIp, port);
 
-		exit(ERROR);
+			log_info(
+					"SocketDemoUtils_connect: Releasing the lock on the socket mutex...");
+
+			UnlockSocketMutex();
+
+			log_info("SocketDemoUtils_connect: Socket mutex lock released.");
+
+			log_info(
+					"SocketDemoUtils_connect: Releasing operating system resources consumed by the socket mutex...");
+
+			FreeSocketMutex();
+
+			log_info(
+					"SocketDemoUtils_connect: Operating system resources consumed by socket mutex freed.");
+
+			log_debug("SocketDemoUtils_connect: Done.");
+
+			SocketDemoUtils_close(sockFd);
+
+			exit(ERROR);
+		}
+
+		log_info(
+				"SocketDemoUtils_connect: Connected to the server at '%s' on port %d.",
+				hostnameOrIp, port);
+
+		log_info("SocketDemoUtils_connect: Releasing the socket mutex...");
 	}
+	UnlockSocketMutex();
 
-	log_info(
-			"SocketDemoUtils_connect: Connected to the server at '%s' on port %d.",
-			hostnameOrIp, port);
+	log_info("SocketDemoUtils_connect: The socket mutex has been released.");
 
 	log_info("SocketDemoUtils_connect: result = %d", result);
 
