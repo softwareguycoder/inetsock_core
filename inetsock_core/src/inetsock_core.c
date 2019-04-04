@@ -1597,7 +1597,7 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 	log_info(
 			"SocketDemoUtils_connect: A valid socket file descriptor was passed.");
 
-	log_info("SocketDemoUtils_connect: port = %d");
+	log_info("SocketDemoUtils_connect: port = %d", port);
 
 	log_info(
 			"SocketDemoUtils_connect: Checking whether the port number used is valid...");
