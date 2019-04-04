@@ -1687,16 +1687,16 @@ void SocketDemoUtils_close(int sockFd) {
 			sockFd);
 
 	if (OK != shutdown(sockFd, SHUT_RD)) {
-		log_error(
+		/* This is not really an error, since shutting down a socket really just means disabling
+		 * reads/writes on an open socket, not closing it.  Who cares if we cannot perform this
+		 * operation? */
+
+		log_warning(
 				"SocketDemoUtils_close: Failed to shut down the socket with file descriptor %d.",
 				sockFd);
-
-		log_debug("SocketDemoUtils_close: Done.");
-
-		return;
+	} else {
+		log_info("SocketDemoUtils_close: Socket shut down successfully.");
 	}
-
-	log_info("SocketDemoUtils_close: Socket shut down successfully.");
 
 	log_info("SocketDemoUtils_close: Attempting to close the socket...");
 
