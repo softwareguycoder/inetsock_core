@@ -1671,8 +1671,6 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 			log_info(
 					"SocketDemoUtils_connect: Operating system resources consumed by socket mutex freed.");
 
-			log_debug("SocketDemoUtils_connect: Done.");
-
 			SocketDemoUtils_close(sockFd);
 
 			/* If we are logging to a file and not the screen, print a message on the
@@ -1680,6 +1678,8 @@ int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port) {
 			if (get_log_file_handle() != stdout) {
 				fprintf(stdout, CONNECT_OPERATION_FAILED, hostnameOrIp, port);
 			}
+
+			log_debug("SocketDemoUtils_connect: Done.");
 
 			exit(ERROR);
 		}
