@@ -86,7 +86,7 @@ void error(const char* msg);
  *  \remarks If an error occurs, prints the error to the console and forces
  *  the program to exit with the ERROR exit code.
  */
-int SocketDemoUtils_createTcpSocket();
+int CreateSocket();
 
 /**
  *  \brief Populates the port and address information for a server

@@ -434,7 +434,7 @@ void error(const char* msg) {
  * @remarks If an error occurs, prints the error to the console and forces
  *  the program to exit with the ERROR exit code.
  */
-int SocketDemoUtils_createTcpSocket() {
+int CreateSocket() {
 	log_debug("In SocketDemoUtils_createTcpSocket");
 
 	int sockFd = -1;
