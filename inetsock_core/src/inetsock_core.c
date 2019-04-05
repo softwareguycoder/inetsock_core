@@ -435,57 +435,57 @@ void error(const char* msg) {
  *  the program to exit with the ERROR exit code.
  */
 int CreateSocket() {
-	log_debug("In SocketDemoUtils_createTcpSocket");
+	log_debug("In CreateSocket");
 
 	int sockFd = -1;
 
 	log_info(
-			"SocketDemoUtils_createTcpSocket: Attempting to obtain a lock on the socket mutex...");
+			"CreateSocket: Attempting to obtain a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
 		log_info(
-				"SocketDemoUtils_createTcpSocket: Socket mutex lock obtained, or we are not using it.");
+				"CreateSocket: Socket mutex lock obtained, or we are not using it.");
 
 		log_info(
-				"SocketDemoUtils_createTcpSocket: Attempting to create new TCP endpoint...");
+				"CreateSocket: Attempting to create new TCP endpoint...");
 
 		sockFd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockFd <= 0) {
 			log_error(
-					"SocketDemoUtils_createTcpSocket: Could not create new TCP endpoint.");
+					"CreateSocket: Could not create new TCP endpoint.");
 
 			UnlockSocketMutex();
 
 			FreeSocketMutex();
 
-			log_debug("SocketDemoUtils_createTcpSocket: Done.");
+			log_debug("CreateSocket: Done.");
 
 			exit(ERROR);
 		}
 
 		log_debug(
-				"SocketDemoUtils_createTcpSocket: Attempting to release the socket mutex lock...");
+				"CreateSocket: Attempting to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
 
-	log_debug("SocketDemoUtils_createTcpSocket: Socket mutex lock released.");
+	log_debug("CreateSocket: Socket mutex lock released.");
 
-	log_info("SocketDemoUtils_createTcpSocket: Endpoint created successfully.");
+	log_info("CreateSocket: Endpoint created successfully.");
 
 	log_info(
-			"SocketDemoUtils_createTcpSocket: Attempting to mark endpoint as reusable...");
+			"CreateSocket: Attempting to mark endpoint as reusable...");
 
 	SocketDemoUtils_setSocketReusable(sockFd);
 
 	log_info(
-			"SocketDemoUtils_createTcpSocket: Endpoint configured to be reusable.");
+			"CreateSocket: Endpoint configured to be reusable.");
 
 	log_info(
-			"SocketDemoUtils_createTcpSocket: The new socket file descriptor is %d.",
+			"CreateSocket: The new socket file descriptor is %d.",
 			sockFd);
 
-	log_debug("SocketDemoUtils_createTcpSocket: Done.");
+	log_debug("CreateSocket: Done.");
 
 	return sockFd;
 }
