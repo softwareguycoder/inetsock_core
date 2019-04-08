@@ -155,17 +155,22 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr);
 int Receive(int sockFd, char **buf);
 
 /**
- *	\brief Sends data to the endpoint on the other end of the connection referenced
+ *	@brief Sends data to the endpoint on the other end of the connection referenced
  *	by the connected socket.
- *	\param sockFd Socket file descriptor.  Must be a descriptor for a valid socket that
+ *	@param sockFd Socket file descriptor.  Must be a descriptor for a valid socket that
  *	is currently connected to a remote host.
- *	\param buf Address of a character array containing the bytes to be sent.
- *	\returns ERROR if the operation failed; number of bytes sent otherwise.
+ *	@param buf Address of a character array containing the bytes to be sent.
+ *	@returns ERROR if the operation failed; number of bytes sent otherwise.
  *	If the ERROR value is returned, errno should be examined to determine the
  *  cause of the error.
  */
 int Send(int sockFd, const char *buf);
 
+/**
+ * @brief Makes the socket passed to it reusable by setting socket options.
+ * @param sockFd Positive integer specifying the Linux file descriptor of the socket to mark.
+ * @returns Zero if the operation succeeded; ERROR otherwise.  errno contains the error.
+ */
 int SetSocketReusable(int sockFd);
 
 /**
