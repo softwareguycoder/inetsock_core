@@ -1310,7 +1310,7 @@ int Receive(int sockFd, char **buf) {
  * @return Total number of bytes sent, or -1 if an error occurred.
  * @remarks This function will kill the program after spitting out an error message if something goes wrong.
  */
-int SendAll(int sockFd, const char *buffer, size_t length) {
+int SendAll(int sockFd, const char *message, size_t length) {
 	log_debug("In SendAll");
 
 	int total_bytes_sent = 0;
@@ -1358,8 +1358,8 @@ int SendAll(int sockFd, const char *buffer, size_t length) {
 		log_info(
 				"SendAll: Checking whether the buffer of text to send is empty...");
 
-		if (buffer == NULL || ((char*) buffer)[0] == '\0'
-				|| strlen((char*) buffer) == 0) {
+		if (message == NULL || ((char*) message)[0] == '\0'
+				|| strlen((char*) message) == 0) {
 			log_error(
 					"SendAll: Send buferr is empty.  This value is required.");
 
@@ -1387,7 +1387,13 @@ int SendAll(int sockFd, const char *buffer, size_t length) {
 
 		log_info("SendAll: The send buffer is not empty.");
 
-		log_info("SendAll: buffer = '%s'", buffer);
+		char *trimmed_message = Trim(message);
+
+		log_info("SendAll: message = '%s'", trimmed_message);
+
+		// The Trim function uses malloc to produce its result
+		free((void*)trimmed_message);
+		trimmed_message = NULL;
 
 		log_info(
 				"SendAll: Checking whether the send buffer's size is a positive value...");
@@ -1419,7 +1425,7 @@ int SendAll(int sockFd, const char *buffer, size_t length) {
 			exit(ERROR);
 		}
 
-		char *ptr = (char*) buffer;
+		char *ptr = (char*) message;
 
 		int remaining = (int) length;
 
