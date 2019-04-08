@@ -476,7 +476,7 @@ int CreateSocket() {
 	log_info(
 			"CreateSocket: Attempting to mark endpoint as reusable...");
 
-	SocketDemoUtils_setSocketReusable(sockFd);
+	SetSocketReusable(sockFd);
 
 	log_info(
 			"CreateSocket: Endpoint configured to be reusable.");
@@ -490,37 +490,37 @@ int CreateSocket() {
 	return sockFd;
 }
 
-int SocketDemoUtils_setSocketReusable(int sockFd) {
-	log_debug("In SocketDemoUtils_setSocketReusable");
+int SetSocketReusable(int sockFd) {
+	log_debug("In SetSocketReusable");
 
 	int retval = ERROR;
 
 	log_info(
-			"SocketDemoUtils_setSocketReusable: Checking whether a valid socket file descriptor was passed...");
+			"SetSocketReusable: Checking whether a valid socket file descriptor was passed...");
 
 	if (sockFd <= 0) {
 		log_error(
-				"SocketDemoUtils_setSocketReusable: The socket file descriptor has an invalid value.");
+				"SetSocketReusable: The socket file descriptor has an invalid value.");
 
-		log_debug("SocketDemoUtils_setSocketReusable: Done.");
+		log_debug("SetSocketReusable: Done.");
 
 		return retval;
 	}
 
 	log_info(
-			"SocketDemoUtils_setSocketReusable: A valid socket file descriptor has been passed.");
+			"SetSocketReusable: A valid socket file descriptor has been passed.");
 
 	log_debug(
-			"SocketDemoUtils_setSocketReusable: Attempting to obtain a lock on the socket mutex...");
+			"SetSocketReusable: Attempting to obtain a lock on the socket mutex...");
 
 	// Set socket options to allow the socket to be reused.
 	LockSocketMutex();
 	{
 		log_debug(
-				"SocketDemoUtils_setSocketReusable: Socket mutex lock obtained, or not using it.");
+				"SetSocketReusable: Socket mutex lock obtained, or not using it.");
 
 		log_info(
-				"SocketDemoUtils_setSocketReusable: Attempting to set the socket as reusable...");
+				"SetSocketReusable: Attempting to set the socket as reusable...");
 
 		retval = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) { 1 },
 				sizeof(int));
@@ -528,34 +528,34 @@ int SocketDemoUtils_setSocketReusable(int sockFd) {
 			perror("setsockopt");
 
 			log_error(
-					"SocketDemoUtils_setSocketReusable: Failed to mark socket as reusable.");
+					"SetSocketReusable: Failed to mark socket as reusable.");
 
 			log_debug(
-					"SocketDemoUtils_setSocketReusable: Attempting to release the socket mutex lock...");
+					"SetSocketReusable: Attempting to release the socket mutex lock...");
 
 			UnlockSocketMutex();
 
 			log_debug(
-					"SocketDemoUtils_setSocketReusable: Socket mutex lock has been released.");
+					"SetSocketReusable: Socket mutex lock has been released.");
 
-			log_debug("SocketDemoUtils_setSocketReusable: Done.");
+			log_debug("SetSocketReusable: Done.");
 
 			return retval;
 		}
 
 		log_info(
-				"SocketDemoUtils_setSocketReusable: Socket configuration operation succeeded.");
+				"SetSocketReusable: Socket configuration operation succeeded.");
 
 		log_debug(
-				"SocketDemoUtils_setSocketReusable: Attempting to release the socket mutex lock...");
+				"SetSocketReusable: Attempting to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
 
-	log_debug("SocketDemoUtils_setSocketReusable: Socket mutex lock released.");
+	log_debug("SetSocketReusable: Socket mutex lock released.");
 
-	log_debug("SocketDemoUtils_setSocketReusable: retval = %d", retval);
+	log_debug("SetSocketReusable: retval = %d", retval);
 
-	log_debug("SocketDemoUtils_setSocketReusable: Done.");
+	log_debug("SetSocketReusable: Done.");
 
 	return retval;
 }

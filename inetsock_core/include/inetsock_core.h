@@ -166,7 +166,7 @@ int Receive(int sockFd, char **buf);
  */
 int Send(int sockFd, const char *buf);
 
-int SocketDemoUtils_setSocketReusable(int sockFd);
+int SetSocketReusable(int sockFd);
 
 /**
  * @brief Connects a socket to a remote host whose hostname or IP address and
