@@ -252,8 +252,7 @@ int IsHostnameValid(const char *hostnameOrIP, struct hostent **he) {
 
 	if (he == NULL) {
 
-		log_error(
-				"IsHostnameValid: The 'he' parameter has a null reference.");
+		log_error("IsHostnameValid: The 'he' parameter has a null reference.");
 
 		log_debug("IsHostnameValid: Returning FALSE.");
 
@@ -273,8 +272,7 @@ int IsHostnameValid(const char *hostnameOrIP, struct hostent **he) {
 		log_info(
 				"IsHostnameValid: Lock obtained on the socket mutex, or no mutex was created.");
 
-		log_info(
-				"IsHostnameValid: Resolving host name or IP address '%s'...",
+		log_info("IsHostnameValid: Resolving host name or IP address '%s'...",
 				hostnameOrIP);
 
 		if ((*he = gethostbyname(hostnameOrIP)) == NULL) {
@@ -305,8 +303,7 @@ int IsHostnameValid(const char *hostnameOrIP, struct hostent **he) {
 
 	log_info("IsHostnameValid: Socket mutex lock released.");
 
-	log_info(
-			"IsHostnameValid: Hostname or IP address resolution succeeded.");
+	log_info("IsHostnameValid: Hostname or IP address resolution succeeded.");
 
 	log_debug("IsHostnameValid: Returning TRUE.");
 
@@ -447,13 +444,11 @@ int CreateSocket() {
 		log_info(
 				"CreateSocket: Socket mutex lock obtained, or we are not using it.");
 
-		log_info(
-				"CreateSocket: Attempting to create new TCP endpoint...");
+		log_info("CreateSocket: Attempting to create new TCP endpoint...");
 
 		sockFd = socket(AF_INET, SOCK_STREAM, 0);
 		if (sockFd <= 0) {
-			log_error(
-					"CreateSocket: Could not create new TCP endpoint.");
+			log_error("CreateSocket: Could not create new TCP endpoint.");
 
 			UnlockSocketMutex();
 
@@ -473,17 +468,13 @@ int CreateSocket() {
 
 	log_info("CreateSocket: Endpoint created successfully.");
 
-	log_info(
-			"CreateSocket: Attempting to mark endpoint as reusable...");
+	log_info("CreateSocket: Attempting to mark endpoint as reusable...");
 
 	SetSocketReusable(sockFd);
 
-	log_info(
-			"CreateSocket: Endpoint configured to be reusable.");
+	log_info("CreateSocket: Endpoint configured to be reusable.");
 
-	log_info(
-			"CreateSocket: The new socket file descriptor is %d.",
-			sockFd);
+	log_info("CreateSocket: The new socket file descriptor is %d.", sockFd);
 
 	log_debug("CreateSocket: Done.");
 
@@ -527,8 +518,7 @@ int SetSocketReusable(int sockFd) {
 		if (retval < 0) {
 			perror("setsockopt");
 
-			log_error(
-					"SetSocketReusable: Failed to mark socket as reusable.");
+			log_error("SetSocketReusable: Failed to mark socket as reusable.");
 
 			log_debug(
 					"SetSocketReusable: Attempting to release the socket mutex lock...");
@@ -573,13 +563,11 @@ int SetSocketReusable(int sockFd) {
  * @remarks If invalid input is supplied or an error occurs, reports thse problem
  *  to the console and forces the program to die with the ERROR exit code.
  */
-void GetServerAddrInfo(const char *port,
-		struct sockaddr_in *addr) {
+void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
 
 	log_info("In GetServerAddrInfo");
 
-	log_debug(
-			"GetServerAddrInfo: Obtaining a lock on the socket mutex...");
+	log_debug("GetServerAddrInfo: Obtaining a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
@@ -608,8 +596,7 @@ void GetServerAddrInfo(const char *port,
 
 			FreeSocketMutex();
 
-			log_debug(
-					"GetServerAddrInfo: Socket mutex resources freed.");
+			log_debug("GetServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("GetServerAddrInfo: Done.");
 
@@ -633,8 +620,7 @@ void GetServerAddrInfo(const char *port,
 
 			FreeSocketMutex();
 
-			log_debug(
-					"GetServerAddrInfo: Socket mutex resources freed.");
+			log_debug("GetServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("GetServerAddrInfo: Done.");
 
@@ -662,8 +648,7 @@ void GetServerAddrInfo(const char *port,
 
 			FreeSocketMutex();
 
-			log_debug(
-					"GetServerAddrInfo: Socket mutex resources freed.");
+			log_debug("GetServerAddrInfo: Socket mutex resources freed.");
 
 			log_debug("GetServerAddrInfo: Done.");
 
@@ -672,15 +657,13 @@ void GetServerAddrInfo(const char *port,
 
 		// Populate the fields of the sockaddr_in structure passed to us with the proper values.
 
-		log_info(
-				"GetServerAddrInfo: Configuring server address and port...");
+		log_info("GetServerAddrInfo: Configuring server address and port...");
 
 		addr->sin_family = AF_INET;
 		addr->sin_port = htons(portnum);
 		addr->sin_addr.s_addr = htons(INADDR_ANY);
 
-		log_info(
-				"GetServerAddrInfo: Server configured to listen on port %d.",
+		log_info("GetServerAddrInfo: Server configured to listen on port %d.",
 				portnum);
 
 		log_debug(
@@ -688,8 +671,7 @@ void GetServerAddrInfo(const char *port,
 	}
 	UnlockSocketMutex();
 
-	log_debug(
-			"GetServerAddrInfo: The socket mutex lock has been released.");
+	log_debug("GetServerAddrInfo: The socket mutex lock has been released.");
 
 	log_debug("GetServerAddrInfo: Done.");
 }
@@ -714,8 +696,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 				"BindSocket: Checking whether a valid socket file descriptor was passed...");
 
 		if (sockFd <= 0) {
-			log_error(
-					"BindSocket: Invalid socket file descriptor passed.");
+			log_error("BindSocket: Invalid socket file descriptor passed.");
 
 			errno = EBADF;
 
@@ -728,8 +709,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"BindSocket: Socket mutex lock has been released.");
+			log_debug("BindSocket: Socket mutex lock has been released.");
 
 			log_debug(
 					"BindSocket: Attempting to free socket mutex resources...");
@@ -743,8 +723,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 			exit(ERROR);
 		}
 
-		log_info(
-				"BindSocket: A valid socket file descriptor has been passed.");
+		log_info("BindSocket: A valid socket file descriptor has been passed.");
 
 		log_info(
 				"BindSocket: Checking whether a valid sockaddr_in reference has been passed...");
@@ -764,8 +743,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"BindSocket: Socket mutex lock has been released.");
+			log_debug("BindSocket: Socket mutex lock has been released.");
 
 			log_debug(
 					"BindSocket: Attempting to free socket mutex resources...");
@@ -779,8 +757,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 			exit(ERROR);
 		}
 
-		log_info(
-				"BindSocket: A valid sockaddr_in reference has been passed.");
+		log_info("BindSocket: A valid sockaddr_in reference has been passed.");
 
 		log_info(
 				"BindSocket: Attempting to bind socket %d to the server address...",
@@ -802,8 +779,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"BindSocket: Socket mutex lock has been released.");
+			log_debug("BindSocket: Socket mutex lock has been released.");
 
 			log_debug(
 					"BindSocket: Attempting to free socket mutex resources...");
@@ -819,8 +795,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 
 		log_info("BindSocket: Successfully bound the server socket.");
 
-		log_debug(
-				"BindSocket: Attemtping to release the socket mutex lock...");
+		log_debug("BindSocket: Attemtping to release the socket mutex lock...");
 	}
 	UnlockSocketMutex();
 
@@ -860,8 +835,7 @@ int ListenSocket(int sockFd) {
 		log_debug("ListenSocket: sockFd = %d", sockFd);
 
 		if (sockFd <= 0) {
-			log_error(
-					"ListenSocket: Invalid socket file descriptor passed.");
+			log_error("ListenSocket: Invalid socket file descriptor passed.");
 
 			errno = EBADF;
 
@@ -874,8 +848,7 @@ int ListenSocket(int sockFd) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"ListenSocket: Socket mutex lock has been released.");
+			log_debug("ListenSocket: Socket mutex lock has been released.");
 
 			log_debug(
 					"ListenSocket: Attempting to free socket mutex resources...");
@@ -896,8 +869,7 @@ int ListenSocket(int sockFd) {
 
 		retval = listen(sockFd, BACKLOG_SIZE);
 
-		log_debug(
-				"ListenSocket: The listen function has been called.");
+		log_debug("ListenSocket: The listen function has been called.");
 
 		log_debug("ListenSocket: retval = %d", retval);
 
@@ -911,8 +883,7 @@ int ListenSocket(int sockFd) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"ListenSocket: Socket mutex lock has been released.");
+			log_debug("ListenSocket: Socket mutex lock has been released.");
 
 			log_debug(
 					"ListenSocket: Attempting to free socket mutex resources...");
@@ -966,8 +937,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr) {
 
 	log_debug("AcceptSocket: sockFd = %d", sockFd);
 
-	log_info(
-			"AcceptSocket: Checking for a valid socket file descriptor...");
+	log_info("AcceptSocket: Checking for a valid socket file descriptor...");
 
 	if (sockFd <= 0) {
 		log_error(
@@ -977,8 +947,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr) {
 
 		perror("AcceptSocket");
 
-		log_debug(
-				"AcceptSocket: Attempting to free socket mutex resources...");
+		log_debug("AcceptSocket: Attempting to free socket mutex resources...");
 
 		FreeSocketMutex();
 
@@ -989,8 +958,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr) {
 		exit(ERROR);
 	}
 
-	log_info(
-			"AcceptSocket: We were passed a valid socket file descriptor.");
+	log_info("AcceptSocket: We were passed a valid socket file descriptor.");
 
 	log_info(
 			"AcceptSocket: Checking whether we are passed a valid sockaddr_in reference...");
@@ -1003,20 +971,17 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr) {
 
 		perror("AcceptSocket");
 
-		log_debug(
-				"AcceptSocket: Attempting to free socket mutex resources...");
+		log_debug("AcceptSocket: Attempting to free socket mutex resources...");
 
 		FreeSocketMutex();
 
 		log_debug("AcceptSocket: Socket mutex resources freed.");
 
-		log_debug(
-				"AcceptSocket: Attempting to close the server endpoint...");
+		log_debug("AcceptSocket: Attempting to close the server endpoint...");
 
 		CloseSocket(sockFd);
 
-		log_debug(
-				"AcceptSocket: Server endpoint resources released.");
+		log_debug("AcceptSocket: Server endpoint resources released.");
 
 		log_debug("AcceptSocket: Done.");
 
@@ -1036,8 +1001,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr) {
 
 	if ((client_socket = accept(sockFd, (struct sockaddr*) addr,
 			&client_address_len)) < 0) {
-		log_error(
-				"AcceptSocket: Invalid value returned from accept.");
+		log_error("AcceptSocket: Invalid value returned from accept.");
 
 		if (EBADF != errno) {
 			perror("AcceptSocket");
@@ -1054,8 +1018,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr) {
 
 			CloseSocket(sockFd);
 
-			log_debug(
-					"AcceptSocket: Server endpoint resources released.");
+			log_debug("AcceptSocket: Server endpoint resources released.");
 		}
 
 		log_debug("AcceptSocket: Done.");
@@ -1111,8 +1074,7 @@ int Receive(int sockFd, char **buf) {
 
 	int total_read = 0;
 
-	log_debug(
-			"Receive: Attempting to obtain a lock on the socket mutex...");
+	log_debug("Receive: Attempting to obtain a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
@@ -1124,8 +1086,7 @@ int Receive(int sockFd, char **buf) {
 		log_debug("Receive: sockFd = %d", sockFd);
 
 		if (sockFd <= 0) {
-			log_error(
-					"Receive: Invalid socket file descriptor passed.");
+			log_error("Receive: Invalid socket file descriptor passed.");
 
 			errno = EBADF;
 
@@ -1136,11 +1097,9 @@ int Receive(int sockFd, char **buf) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"Receive: Socket mutex lock has been released.");
+			log_debug("Receive: Socket mutex lock has been released.");
 
-			log_debug(
-					"Receive: Attempting to free socket mutex resources...");
+			log_debug("Receive: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -1151,14 +1110,12 @@ int Receive(int sockFd, char **buf) {
 			exit(ERROR);
 		}
 
-		log_info(
-				"Receive: The socket file descriptor passed is valid.");
+		log_info("Receive: The socket file descriptor passed is valid.");
 
 		log_info("Receive: Checking for valid receive buffer...");
 
 		if (buf == NULL) {
-			log_error(
-					"Receive: Null reference passed for receive buffer.");
+			log_error("Receive: Null reference passed for receive buffer.");
 
 			perror("Receive");
 
@@ -1167,11 +1124,9 @@ int Receive(int sockFd, char **buf) {
 
 			UnlockSocketMutex();
 
-			log_debug(
-					"Receive: Socket mutex lock has been released.");
+			log_debug("Receive: Socket mutex lock has been released.");
 
-			log_debug(
-					"Receive: Attempting to free socket mutex resources...");
+			log_debug("Receive: Attempting to free socket mutex resources...");
 
 			FreeSocketMutex();
 
@@ -1214,8 +1169,7 @@ int Receive(int sockFd, char **buf) {
 				if (errno == EAGAIN || errno == EWOULDBLOCK)
 					continue;
 
-				log_warning(
-						"Receive: Stopped receiving more text.");
+				log_warning("Receive: Stopped receiving more text.");
 
 				log_info("Receive: Breaking out of recv loop...");
 
@@ -1245,8 +1199,7 @@ int Receive(int sockFd, char **buf) {
 
 			log_info("Receive: Char received: '%c'", ch);
 
-			log_info(
-					"Receive: Expanding buffer to fit next char...");
+			log_info("Receive: Expanding buffer to fit next char...");
 
 			// re-allocate more memory and make sure to leave room
 			// for the null-terminator.
@@ -1266,8 +1219,7 @@ int Receive(int sockFd, char **buf) {
 				"Receive: Checking whether bytes received is a positive quantity...");
 
 		if (total_read > 0) {
-			log_info(
-					"Receive: Bytes received is a positive quantity.");
+			log_info("Receive: Bytes received is a positive quantity.");
 
 			// We are done receiving, cap the string off with a null terminator
 			// after resizing the buffer to match the total bytes read + 1.  if
@@ -1279,8 +1231,7 @@ int Receive(int sockFd, char **buf) {
 			*buf = (char*) realloc(*buf, (total_read + 1) * sizeof(char));
 			*(*buf + total_read) = '\0';// cap the buffer off with the null-terminator
 
-			log_debug(
-					"Receive: Finished placing content into receive buffer.");
+			log_debug("Receive: Finished placing content into receive buffer.");
 		}
 
 		log_info("Receive: %d B received in total.", total_read);
@@ -1392,7 +1343,7 @@ int SendAll(int sockFd, const char *message, size_t length) {
 		log_info("SendAll: message = '%s'", trimmed_message);
 
 		// The Trim function uses malloc to produce its result
-		free((void*)trimmed_message);
+		free((void*) trimmed_message);
 		trimmed_message = NULL;
 
 		log_info(
@@ -1500,8 +1451,7 @@ int Send(int sockFd, const char *buf) {
 	log_debug("Send: sockFd = %d", sockFd);
 
 	if (sockFd <= 0) {
-		log_error(
-				"Send: Invalid socket file descriptor passed.");
+		log_error("Send: Invalid socket file descriptor passed.");
 
 		errno = EBADF;
 
@@ -1512,15 +1462,12 @@ int Send(int sockFd, const char *buf) {
 		exit(ERROR);
 	}
 
-	log_info(
-			"Send: The socket file descriptor passed is valid.");
+	log_info("Send: The socket file descriptor passed is valid.");
 
-	log_info(
-			"Send: Checking whether text was passed in for sending...");
+	log_info("Send: Checking whether text was passed in for sending...");
 
 	if (buf == NULL || strlen(buf) <= 0 || buf[0] == '\0') {
-		log_error(
-				"Send: Nothing was passed to us to send.  Stopping.");
+		log_error("Send: Nothing was passed to us to send.  Stopping.");
 
 		log_debug("Send: Returning zero.");
 
@@ -1547,8 +1494,7 @@ int Send(int sockFd, const char *buf) {
 
 		error_and_close(sockFd, "Send: Failed to send data.");
 
-		log_debug(
-				"Send: Attempting to free socket mutex resources...");
+		log_debug("Send: Attempting to free socket mutex resources...");
 
 		FreeSocketMutex();
 
@@ -1585,8 +1531,7 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 
 	log_debug("ConnectSocket: sockFd = %d", sockFd);
 
-	log_info(
-			"ConnectSocket: Checking for a valid socket file descriptor...");
+	log_info("ConnectSocket: Checking for a valid socket file descriptor...");
 
 	if (!IsSocketValid(sockFd)) {
 		log_error(
@@ -1594,8 +1539,7 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 		exit(result);
 	}
 
-	log_info(
-			"ConnectSocket: A valid socket file descriptor was passed.");
+	log_info("ConnectSocket: A valid socket file descriptor was passed.");
 
 	log_info("ConnectSocket: port = %d", port);
 
@@ -1603,8 +1547,25 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 			"ConnectSocket: Checking whether the port number used is valid...");
 
 	if (!isUserPortValid(port)) {
+		if (stderr != get_error_log_file_handle()) {
+			fprintf(stderr,
+					"ConnectSocket: An invalid value is being used for the port number of the server.");
+		}
+
 		log_error(
 				"ConnectSocket: Port number must be in the range 1024-49151 inclusive.");
+
+		log_info("ConnectSocket: Attempting to close the socket...");
+
+		CloseSocket(sockFd);
+
+		log_info("ConnectSocket: Socket closed.");
+
+		log_info("ConnectSocket: Attempting to release the socket mutex...");
+
+		FreeSocketMutex();
+
+		log_info("ConnectSocket: Resources for socket mutex have been freed.");
 
 		log_debug("ConnectSocket: Done.");
 
@@ -1620,19 +1581,39 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 			"ConnectSocket: Attempting to resolve the hostname or IP address '%s'...",
 			hostnameOrIp);
 
-// First, try to resolve the host name or IP address passed to us, to ensure that
-// the host can even be found on the network in the first place.  Calling the function
-// below also has the added bonus of filling in a hostent structure for us if it succeeds.
+	// First, try to resolve the host name or IP address passed to us, to ensure that
+	// the host can even be found on the network in the first place.  Calling the function
+	// below also has the added bonus of filling in a hostent structure for us if it succeeds.
 	if (!IsHostnameValid(hostnameOrIp, &he)) {
-		error_and_close(sockFd,
-				"connect: Unable to validate/resolve hostname/IP address provided.");
+		log_error("ConnectSocket: Cannot connect to server on '%s'.",
+				hostnameOrIp);
+
+		if (get_error_log_file_handle() != stderr) {
+			fprintf(stderr, "ConnectSocket: Cannot connect to server on '%s'.",
+					hostnameOrIp);
+		}
+
+		log_info("ConnectSocket: Attempting to close the socket...");
+
+		CloseSocket(sockFd);
+
+		log_info("ConnectSocket: Socket closed.");
+
+		log_info("ConnectSocket: Attempting to release the socket mutex...");
+
+		FreeSocketMutex();
+
+		log_info("ConnectSocket: Resources for socket mutex have been freed.");
+
+		log_debug("ConnectSocket: Done.");
+
+		exit(result);
 	}
 
 	log_info(
 			"ConnectSocket: The hostname or IP address passed could be resolved.");
 
-	log_info(
-			"ConnectSocket: Obtaining a lock on the socket mutex...");
+	log_info("ConnectSocket: Obtaining a lock on the socket mutex...");
 
 	LockSocketMutex();
 	{
@@ -1684,8 +1665,7 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 			exit(ERROR);
 		}
 
-		log_info(
-				"ConnectSocket: Connected to the server at '%s' on port %d.",
+		log_info("ConnectSocket: Connected to the server at '%s' on port %d.",
 				hostnameOrIp, port);
 
 		log_info("ConnectSocket: Releasing the socket mutex...");
@@ -1706,18 +1686,15 @@ void CloseSocket(int sockFd) {
 
 	log_debug("CloseSocket: sockFd = %d", sockFd);
 
-	log_info(
-			"CloseSocket: Checking for a valid socket file descriptor...");
+	log_info("CloseSocket: Checking for a valid socket file descriptor...");
 
 	if (!IsSocketValid(sockFd)) {
-		log_error(
-				"CloseSocket: Valid socket file descriptor not passed.");
+		log_error("CloseSocket: Valid socket file descriptor not passed.");
 
 		return;	// just silently fail if the socket file descriptor passed is invalid
 	}
 
-	log_info(
-			"CloseSocket: A valid socket file descriptor was passed.");
+	log_info("CloseSocket: A valid socket file descriptor was passed.");
 
 	log_info(
 			"CloseSocket: Attempting to shut down the socket with file descriptor %d...",
