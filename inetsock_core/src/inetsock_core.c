@@ -1169,9 +1169,9 @@ int Receive(int sockFd, char **buf) {
 				if (errno == EAGAIN || errno == EWOULDBLOCK)
 					continue;
 
-				log_warning("Receive: Stopped receiving more text.");
+				//log_warning("Receive: Stopped receiving more text.");
 
-				log_info("Receive: Breaking out of recv loop...");
+				//log_info("Receive: Breaking out of recv loop...");
 
 				//prevch = ch;
 				break;
@@ -1190,16 +1190,16 @@ int Receive(int sockFd, char **buf) {
 			// If the newline ('\n') character was the char received,
 			// then we're done; it's time to apply the null terminator.
 			if (ch == '\n') {
-				log_info("Receive: Newline encountered.");
+				//log_info("Receive: Newline encountered.");
 
-				log_info("Receive: Breaking out of recv loop...");
+				//log_info("Receive: Breaking out of recv loop...");
 
 				break;
 			}
 
-			log_info("Receive: Char received: '%c'", ch);
+			//log_info("Receive: Char received: '%c'", ch);
 
-			log_info("Receive: Expanding buffer to fit next char...");
+			//log_info("Receive: Expanding buffer to fit next char...");
 
 			// re-allocate more memory and make sure to leave room
 			// for the null-terminator.
@@ -1209,8 +1209,8 @@ int Receive(int sockFd, char **buf) {
 
 			*buf = (char*) realloc(*buf, new_recv_buffer_size);
 
-			log_info("Receive: New receive buffer size is: %d B.",
-					new_recv_buffer_size);
+			/*log_info("Receive: New receive buffer size is: %d B.",
+					new_recv_buffer_size);*/
 		}
 
 		log_info("Receive: %d B have been received.", total_read);
@@ -1232,19 +1232,47 @@ int Receive(int sockFd, char **buf) {
 			*(*buf + total_read) = '\0';// cap the buffer off with the null-terminator
 
 			log_debug("Receive: Finished placing content into receive buffer.");
-		}
+		} else {
+			log_error("Receive: Total bytes received is a negative quantity.");
 
-		log_info("Receive: %d B received in total.", total_read);
+			log_info("Receive: Freeing memory allocated for receiving text...");
+
+			free_buffer((void**)buf);
+
+			log_info("Receive: Memory for receiving text has been released.");
+
+			log_info("Receive: Releasing the socket mutex...");
+
+			UnlockSocketMutex();
+
+			log_info("Receive: Socket mutex released.");
+
+			log_info("Receive: Closing the socket..");
+
+			CloseSocket(sockFd);
+
+			log_info("Receive: Socket closed.");
+
+			log_info("Receive: Freeing the memory occupied by the socket mutex...");
+
+			FreeSocketMutex();
+
+			log_info("Receive: Socket mutex memory freed.");
+
+			log_debug("Receive: Forcibly terminating executable...");
+
+			exit(ERROR);
+		}
 
 		// Now the storage at address *buf should contain the entire
 		// line just received, plus the newline and the null-terminator, plus
 		// any previously-received data
 
-		log_debug("Receive: Releasing socket mutex...");
+		log_info("Receive: Releasing socket mutex...");
 	}
 	UnlockSocketMutex();
 
-	log_debug("Receive: Socket mutex releaed.");
+	log_info("Receive: Socket mutex releaed.");
 
 	log_debug("Receive: Returning %d (total B read)", total_read);
 
