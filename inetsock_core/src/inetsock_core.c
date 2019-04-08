@@ -1483,16 +1483,6 @@ int SendAll(int sockFd, const char *buffer, size_t length) {
 	return total_bytes_sent;
 }
 
-/**
- *	@brief Sends data to the endpoint on the other end of the connection referenced
- *	by the connected socket.
- *	@param sockFd Socket file descriptor.  Must be a descriptor for a valid socket that
- *	is currently connected to a remote host.
- *	@param buf Address of a character array containing the bytes to be sent.
- *	@returns ERROR if the operation failed; number of bytes sent otherwise.
- *	If the ERROR value is returned, errno should be examined to determine the
- *  cause of the error.
- */
 int Send(int sockFd, const char *buf) {
 	log_debug("In Send");
 
