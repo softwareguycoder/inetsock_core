@@ -39,7 +39,7 @@ void FreeSocketMutex();
  *  will be the address of a storage location containing a hostent
  *  structure containing information for the remote host.
  */
-int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he);
+int IsHostnameValid(const char *hostnameOrIP, struct hostent **he);
 
 /**
  * @brief Determines whether the socket file descriptor passed is valid.
@@ -49,7 +49,7 @@ int isValidHostnameOrIp(const char *hostnameOrIP, struct hostent **he);
  * function's job is not to tell you whether the socket is currently open
  * or closed.
  */
-int isValidSocket(int sockFD);
+int IsSocketValid(int sockFD);
 
 /**
  * @brief Frees the memory at the address specified.
@@ -101,7 +101,7 @@ int CreateSocket();
  *  \remarks If invalid input is supplied or an error occurs, reports thse problem
  *  to the console and forces the program to die with the ERROR exit code.
  */
-void SocketDemoUtils_populateServerAddrInfo(const char *port, struct sockaddr_in *addr);
+void GetServerAddrInfo(const char *port, struct sockaddr_in *addr);
 
 /**
  *  \brief Binds a server socket to the address and port specified by the 'addr'
@@ -110,7 +110,7 @@ void SocketDemoUtils_populateServerAddrInfo(const char *port, struct sockaddr_in
  *  \param addr Pointer to a sockaddr_in structure that specifies the host and port
  *  to which the socket endpoint should be bound.
 */
-int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr);
+int BindSocket(int sockFd, struct sockaddr_in *addr);
 
 /**
  * @brief Sets up a TCP or UDP server socket to listen on a port and IP address
@@ -121,7 +121,7 @@ int SocketDemoUtils_bind(int sockFd, struct sockaddr_in *addr);
  * calling listen on the socket file descriptor passed with a backlog size of
  * BACKLOG_SIZE (128 by default).  Zero is returned if the operation was successful.
  */
-int SocketDemoUtils_listen(int sockFd);
+int ListenSocket(int sockFd);
 
 /**
  * @brief Accepts an incoming connection on a socket and returns information about
@@ -140,7 +140,7 @@ int SocketDemoUtils_listen(int sockFd);
  * in.  This function blocks the calling thread until an incoming connection has been
  * established.
  */
-int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr);
+int AcceptSocket(int sockFd, struct sockaddr_in *addr);
 
 /** @brief Reads a line of data, terminated by the '\n' character, from a socket.
  *  \param sockFd Socket file descriptor from which to receive data.
@@ -152,7 +152,7 @@ int SocketDemoUtils_accept(int sockFd, struct sockaddr_in *addr);
  *  valid storage is passed, this function will free the storage referenced by *buf and
  *  allocate brand-new storage for the incoming line.
  */
-int SocketDemoUtils_recv(int sockFd, char **buf);
+int Receive(int sockFd, char **buf);
 
 /**
  *	\brief Sends data to the endpoint on the other end of the connection referenced
@@ -164,7 +164,7 @@ int SocketDemoUtils_recv(int sockFd, char **buf);
  *	If the ERROR value is returned, errno should be examined to determine the
  *  cause of the error.
  */
-int SocketDemoUtils_send(int sockFd, const char *buf);
+int Send(int sockFd, const char *buf);
 
 int SocketDemoUtils_setSocketReusable(int sockFd);
 
@@ -180,14 +180,14 @@ int SocketDemoUtils_setSocketReusable(int sockFd);
  * value should be examined if this happens.  In other cases, this function
  * forcibly terminates the calling program with the ERROR exit code.
  */
-int SocketDemoUtils_connect(int sockFd, const char *hostnameOrIp, int port);
+int ConnectSocket(int sockFd, const char *hostnameOrIp, int port);
 
 /**
  * @brief Attempts to release operating system resources that are allocated to the
  * specified socket.
  * @param sockFd Socket file descriptor referring to the socket that is to be closed.
  */
-void SocketDemoUtils_close(int sockFd);
+void CloseSocket(int sockFd);
 
 /**
  * @brief Destroys and deallocates the operating system resources for the socket mutex.
