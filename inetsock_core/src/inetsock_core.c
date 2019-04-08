@@ -1387,6 +1387,8 @@ int SendAll(int sockFd, const char *buffer, size_t length) {
 
 		log_info("SendAll: The send buffer is not empty.");
 
+		log_info("SendAll: buffer = '%s'", buffer);
+
 		log_info(
 				"SendAll: Checking whether the send buffer's size is a positive value...");
 
