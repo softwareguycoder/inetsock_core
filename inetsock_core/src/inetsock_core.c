@@ -1096,11 +1096,11 @@ int Receive(int sockFd, char **buf) {
 
 	int total_read = 0;
 
-	log_debug("Receive: Attempting to obtain a lock on the socket mutex...");
+	//log_debug("Receive: Attempting to obtain a lock on the socket mutex...");
 
-	LockSocketMutex();
+	//LockSocketMutex();
 	{
-		log_debug("Receive: Socket mutex lock obtained.");
+		//log_debug("Receive: Socket mutex lock obtained.");
 
 		log_info(
 				"Receive: Checking whether the socket file descriptor passed is valid...");
@@ -1188,7 +1188,12 @@ int Receive(int sockFd, char **buf) {
 			char ch;		// receive one char at a time
 			bytes_read = recv(sockFd, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
 			if (bytes_read < 0) {
-				break;
+				if (errno == EBADF || errno == EWOULDBLOCK) {
+					sleep(1);	/* allow any other threads receiving to run */
+					continue;
+				} else {
+					break;
+				}
 			}
 
 			// If we are here, then stuff came over the wire.
@@ -1282,11 +1287,11 @@ int Receive(int sockFd, char **buf) {
 		// line just received, plus the newline and the null-terminator, plus
 		// any previously-received data
 
-		log_info("Receive: Releasing socket mutex...");
+		//log_info("Receive: Releasing socket mutex...");
 	}
-	UnlockSocketMutex();
+	//UnlockSocketMutex();
 
-	log_info("Receive: Socket mutex releaed.");
+	//log_info("Receive: Socket mutex releaed.");
 
 	log_debug("Receive: Returning %d (total B read)", total_read);
 
@@ -1308,11 +1313,11 @@ int SendAll(int sockFd, const char *message, size_t length) {
 
 	int total_bytes_sent = 0;
 
-	log_debug("SendAll: Getting lock on socket mutex...");
+	//log_debug("SendAll: Getting lock on socket mutex...");
 
-	LockSocketMutex();
+	//LockSocketMutex();
 	{
-		log_debug("SendAll: Lock obtained on socket mutex.");
+		//log_debug("SendAll: Lock obtained on socket mutex.");
 
 		log_debug(
 				"SendAll: Checking whether socket file descriptor is a valid value...");
@@ -1328,12 +1333,12 @@ int SendAll(int sockFd, const char *message, size_t length) {
 
 			perror("SendAll");
 
-			log_debug(
-					"SendAll: Attempting to release the socket mutex lock...");
+			//log_debug(
+			//		"SendAll: Attempting to release the socket mutex lock...");
 
-			UnlockSocketMutex();
+			//UnlockSocketMutex();
 
-			log_debug("SendAll: Socket mutex lock has been released.");
+			//log_debug("SendAll: Socket mutex lock has been released.");
 
 			log_debug("SendAll: Attempting to free socket mutex resources...");
 
@@ -1360,12 +1365,12 @@ int SendAll(int sockFd, const char *message, size_t length) {
 
 			perror("SendAll");
 
-			log_debug(
-					"SendAll: Attempting to release the socket mutex lock...");
+			//log_debug(
+			//		"SendAll: Attempting to release the socket mutex lock...");
 
-			UnlockSocketMutex();
+			//UnlockSocketMutex();
 
-			log_debug("SendAll: Socket mutex lock has been released.");
+			//log_debug("SendAll: Socket mutex lock has been released.");
 
 			log_debug("SendAll: Attempting to free socket mutex resources...");
 
@@ -1400,12 +1405,12 @@ int SendAll(int sockFd, const char *message, size_t length) {
 
 			perror("SendAll");
 
-			log_debug(
-					"SendAll: Attempting to release the socket mutex lock...");
+			//log_debug(
+			//		"SendAll: Attempting to release the socket mutex lock...");
 
-			UnlockSocketMutex();
+			//UnlockSocketMutex();
 
-			log_debug("SendAll: Socket mutex lock has been released.");
+			//log_debug("SendAll: Socket mutex lock has been released.");
 
 			log_debug("SendAll: Attempting to free socket mutex resources...");
 
@@ -1438,12 +1443,12 @@ int SendAll(int sockFd, const char *message, size_t length) {
 			if (bytes_sent < 1) {
 				perror("SendAll");
 
-				log_debug(
-						"SendAll: Attempting to release the socket mutex lock...");
+				//log_debug(
+				//		"SendAll: Attempting to release the socket mutex lock...");
 
-				UnlockSocketMutex();
+				//UnlockSocketMutex();
 
-				log_debug("SendAll: Socket mutex lock has been released.");
+				//log_debug("SendAll: Socket mutex lock has been released.");
 
 				log_debug(
 						"SendAll: Attempting to free socket mutex resources...");
@@ -1471,9 +1476,9 @@ int SendAll(int sockFd, const char *message, size_t length) {
 
 		log_debug("SendAll: Sending complete.");
 
-		log_debug("SendAll: Releasing socket mutex lock...");
+		//log_debug("SendAll: Releasing socket mutex lock...");
 	}
-	UnlockSocketMutex();
+	//UnlockSocketMutex();
 
 	log_debug("SendAll: Socket mutex lock released.");
 
