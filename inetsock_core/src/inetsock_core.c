@@ -1188,14 +1188,6 @@ int Receive(int sockFd, char **buf) {
 			char ch;		// receive one char at a time
 			bytes_read = recv(sockFd, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
 			if (bytes_read < 0) {
-				if (errno == EAGAIN || errno == EWOULDBLOCK)
-					continue;
-
-				//log_warning("Receive: Stopped receiving more text.");
-
-				//log_info("Receive: Breaking out of recv loop...");
-
-				//prevch = ch;
 				break;
 			}
 
