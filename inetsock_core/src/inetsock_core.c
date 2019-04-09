@@ -481,6 +481,28 @@ int CreateSocket() {
 	return sockFd;
 }
 
+void SetSocketNonBlocking(int sockFd) {
+
+	if (!IsSocketValid(sockFd)) {
+		return;
+	}
+
+	int flags = 0;
+
+	/* Set socket to non-blocking */
+
+	if ((flags = fcntl(sockFd, F_GETFL, 0)) < 0)
+	{
+	    return;
+	}
+
+
+	if (fcntl(sockFd, F_SETFL, flags | O_NONBLOCK) < 0)
+	{
+	    return;
+	}
+}
+
 int SetSocketReusable(int sockFd) {
 	log_debug("In SetSocketReusable");
 
