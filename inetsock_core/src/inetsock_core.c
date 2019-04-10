@@ -652,7 +652,7 @@ void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
 		// Get the port number from its string representation and then validate that it is in
 		// the proper range
 		int portnum = 0;
-		int result = char_to_long(port, (long*) &portnum);
+		int result = StringToLong(port, (long*) &portnum);
 		if (result >= 0 && !isUserPortValid(portnum)) {
 			LogError(
 					"GetServerAddrInfo: Port number must be in the range 1024-49151 inclusive.");
