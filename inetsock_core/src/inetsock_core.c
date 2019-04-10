@@ -1091,7 +1091,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr) {
  *  valid storage is passed, this function will free the storage referenced by *buf and
  *  allocate brand-new storage for the incoming line.
  */
-int Receive(int sockFd, char **buf) {
+int Receive(int sockFd, char **ppszReceiveBuffer) {
 	LogDebug("In Receive");
 
 	int total_read = 0;
@@ -1136,7 +1136,7 @@ int Receive(int sockFd, char **buf) {
 
 		LogInfo("Receive: Checking for valid receive buffer...");
 
-		if (buf == NULL) {
+		if (ppszReceiveBuffer == NULL) {
 			LogError("Receive: Null reference passed for receive buffer.");
 
 			perror("Receive");
@@ -1177,8 +1177,8 @@ int Receive(int sockFd, char **buf) {
 				initial_recv_buffer_size);
 
 		total_read = 0;
-		*buf = (char*) realloc(*buf, initial_recv_buffer_size * sizeof(char));
-		explicit_bzero((void*) *buf, initial_recv_buffer_size);
+		*ppszReceiveBuffer = (char*) realloc(*ppszReceiveBuffer, initial_recv_buffer_size * sizeof(char));
+		explicit_bzero((void*) *ppszReceiveBuffer, initial_recv_buffer_size);
 
 		LogInfo("Receive: Allocated %d B for receive buffer.",
 				initial_recv_buffer_size);
@@ -1201,7 +1201,7 @@ int Receive(int sockFd, char **buf) {
 			// storage element referenced by *buf + total_read
 			// and then allocate some more memory to hold the
 			// next char and then the null terminator
-			*(*buf + total_read) = ch;
+			*(*ppszReceiveBuffer + total_read) = ch;
 
 			// Tally the total bytes read overall
 			total_read += bytes_read;
@@ -1226,7 +1226,7 @@ int Receive(int sockFd, char **buf) {
 			int new_recv_buffer_size = (total_read + RECV_BLOCK_SIZE + 1)
 					* sizeof(char);
 
-			*buf = (char*) realloc(*buf, new_recv_buffer_size);
+			*ppszReceiveBuffer = (char*) realloc(*ppszReceiveBuffer, new_recv_buffer_size);
 
 			/*log_info("Receive: New receive buffer size is: %d B.",
 					new_recv_buffer_size);*/
@@ -1247,8 +1247,8 @@ int Receive(int sockFd, char **buf) {
 			// free.  strlen(*buf) will then return zero, and this will be
 			// how we can tell not to call free() again on *buf
 
-			*buf = (char*) realloc(*buf, (total_read + 1) * sizeof(char));
-			*(*buf + total_read) = '\0';// cap the buffer off with the null-terminator
+			*ppszReceiveBuffer = (char*) realloc(*ppszReceiveBuffer, (total_read + 1) * sizeof(char));
+			*(*ppszReceiveBuffer + total_read) = '\0';// cap the buffer off with the null-terminator
 
 			LogDebug("Receive: Finished placing content into receive buffer.");
 		} else {
@@ -1256,31 +1256,11 @@ int Receive(int sockFd, char **buf) {
 
 			LogInfo("Receive: Freeing memory allocated for receiving text...");
 
-			free_buffer((void**)buf);
+			free_buffer((void**)ppszReceiveBuffer);
 
 			LogInfo("Receive: Memory for receiving text has been released.");
 
-			LogInfo("Receive: Releasing the socket mutex...");
-
-			UnlockSocketMutex();
-
-			LogInfo("Receive: Socket mutex released.");
-
-			LogInfo("Receive: Closing the socket..");
-
-			CloseSocket(sockFd);
-
-			LogInfo("Receive: Socket closed.");
-
-			LogInfo("Receive: Freeing the memory occupied by the socket mutex...");
-
-			FreeSocketMutex();
-
-			LogInfo("Receive: Socket mutex memory freed.");
-
-			LogDebug("Receive: Forcibly terminating executable...");
-
-			exit(ERROR);
+			return 0;
 		}
 
 		// Now the storage at address *buf should contain the entire

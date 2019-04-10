@@ -144,7 +144,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr);
 
 /** @brief Reads a line of data, terminated by the '\n' character, from a socket.
  *  @param sockFd Socket file descriptor from which to receive data.
- *  @param buf Reference to an address at which to allocate storage for the received data.
+ *  @param ppszReceiveBuffer Reference to an address at which to allocate storage for the received data.
  *  @returns Total bytes read for the current line or a negative number otherwise.
  *  @remarks This function will forcibly terminate the calling program with an exit
  *  code of ERROR if the operation fails.  It is the responsibility of the caller to
@@ -152,7 +152,7 @@ int AcceptSocket(int sockFd, struct sockaddr_in *addr);
  *  valid storage is passed, this function will free the storage referenced by *buf and
  *  allocate brand-new storage for the incoming line.
  */
-int Receive(int sockFd, char **buf);
+int Receive(int sockFd, char **ppszReceiveBuffer);
 
 /**
  *	@brief Sends data to the endpoint on the other end of the connection referenced
