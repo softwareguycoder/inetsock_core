@@ -1594,7 +1594,7 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 			"ConnectSocket: Checking whether the port number used is valid...");
 
 	if (!isUserPortValid(port)) {
-		if (stderr != get_error_log_file_handle()) {
+		if (stderr != GetErrorLogFileHandle()) {
 			fprintf(stderr,
 					"ConnectSocket: An invalid value is being used for the port number of the server.");
 		}
@@ -1635,7 +1635,7 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 		log_error("ConnectSocket: Cannot connect to server on '%s'.",
 				hostnameOrIp);
 
-		if (get_error_log_file_handle() != stderr) {
+		if (GetErrorLogFileHandle() != stderr) {
 			fprintf(stderr, "ConnectSocket: Cannot connect to server on '%s'.",
 					hostnameOrIp);
 		}
@@ -1701,11 +1701,11 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 
 			/* If we are logging to a file and not the screen, print a message on the
 			 * screen for an interactive user that the connect operation failed. */
-			if (get_log_file_handle() != stdout) {
+			if (GetLogFileHandle() != stdout) {
 				fprintf(stdout, CONNECT_OPERATION_FAILED, hostnameOrIp, port);
 			}
 
-			close_log_file_handles();
+			CloseLogFileHandles();
 
 			log_debug("ConnectSocket: Done.");
 
