@@ -180,26 +180,12 @@ int IsSocketValid(int sockFD) {
  * to this function to void**
  */
 void free_buffer(void **ppBuffer) {
-    LogDebug("In free_buffer");
-
-    LogInfo("free_buffer: Checking pointer provided...");
-
     if (ppBuffer == NULL || *ppBuffer == NULL) {
-        LogWarning("free_buffer: No memory has been passed to work on.  "
-                "Nothing to do.");
-
-        LogDebug("free_buffer: Done.");
-
         return;     // Nothing to do since there is no address referenced
     }
 
-    LogInfo("free_buffer: Freeing the memory referenced by the ppBuffer "
-            "parameter...");
-
     free(*ppBuffer);
     *ppBuffer = NULL;
-
-    LogDebug("free_buffer: Done.");
 }
 
 /**
