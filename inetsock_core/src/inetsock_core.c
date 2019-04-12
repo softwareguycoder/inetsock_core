@@ -543,47 +543,21 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
  * line.
  */
 int Receive(int sockFd, char **ppszReceiveBuffer) {
-    LogDebug("In Receive");
+    int nTotalBytesRead = 0;
 
-    int total_read = 0;
-
-    LogInfo("Receive: Checking whether the socket file descriptor "
-            "passed is valid...");
-
-    LogDebug("Receive: sockFd = %d", sockFd);
+    // Can't do anything if the receive buffer's memory address is not
+    // given
+    if (ppszReceiveBuffer == NULL) {
+        return 0;
+    }
 
     if (!IsSocketValid(sockFd)) {
-        LogError("Receive: Invalid socket file descriptor passed.");
-
         // If an invalid socket file descriptor is passed, we don't care.
         // Could be a socket that is polled even after it's already been
         // closed and its descriptor invalidated.  Just finish and return
         // zero bytes received.
-        LogDebug("Receive: Returning zero bytes received.");
-
-        LogDebug("Receive: Done.");
-
         return 0;
     }
-
-    LogInfo("Receive: The socket file descriptor passed is valid.");
-
-    LogInfo("Receive: Checking for valid receive buffer...");
-
-    if (ppszReceiveBuffer == NULL) {
-        LogError("Receive: Null reference passed for receive buffer.");
-
-        LogDebug("Receive: Returning zero bytes received.");
-
-        LogDebug("Receive: Done.");
-
-        return 0;
-    }
-
-    LogInfo("Receive: Valid memory storage reference passed for "
-            "receive buffer.");
-
-    LogInfo("Receive: Initializing the receive buffer...");
 
     int bytes_read = 0;
 
@@ -592,22 +566,15 @@ int Receive(int sockFd, char **ppszReceiveBuffer) {
     // storage already referenced by *buf.  If *buf happens to be
     // NULL already, a malloc is done.  Once the new memory has been
     // allocated, we then explicitly zero it out.
-    int initial_recv_buffer_size = RECV_BLOCK_SIZE + 1;
+    int nInitialReceiveBufferSize = RECV_BLOCK_SIZE + 1;
 
-    LogInfo("Receive: Allocating %d B for receive buffer...",
-            initial_recv_buffer_size);
-
-    total_read = 0;
+    nTotalBytesRead = 0;
     *ppszReceiveBuffer = (char*) realloc(*ppszReceiveBuffer,
-            initial_recv_buffer_size * sizeof(char));
-    explicit_bzero((void*) *ppszReceiveBuffer, initial_recv_buffer_size);
+            nInitialReceiveBufferSize * sizeof(char));
+    explicit_bzero((void*) *ppszReceiveBuffer, nInitialReceiveBufferSize);
 
-    LogInfo("Receive: Allocated %d B for receive buffer.",
-            initial_recv_buffer_size);
-
-    //char prevch = '\0';
     while (1) {
-        char ch;		// receive one char at a time
+        char ch;		// receive one char at a time until a newline is found
         bytes_read = recv(sockFd, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
         if (bytes_read < 0) {
             if (errno == EBADF || errno == EWOULDBLOCK) {
@@ -623,39 +590,28 @@ int Receive(int sockFd, char **ppszReceiveBuffer) {
         // storage element referenced by *buf + total_read
         // and then allocate some more memory to hold the
         // next char and then the null terminator
-        *(*ppszReceiveBuffer + total_read) = ch;
+        *(*ppszReceiveBuffer + nTotalBytesRead) = ch;
 
         // Tally the total bytes read overall
-        total_read += bytes_read;
+        nTotalBytesRead += bytes_read;
 
         // If the newline ('\n') character was the char received,
         // then we're done; it's time to apply the null terminator.
         if (ch == '\n') {
-            //log_info("Receive: Newline encountered.");
-
-            //log_info("Receive: Breaking out of recv loop...");
-
             break;
         }
 
         // re-allocate more memory and make sure to leave room
         // for the null-terminator.
 
-        int new_recv_buffer_size = (total_read + RECV_BLOCK_SIZE + 1)
+        int new_recv_buffer_size = (nTotalBytesRead + RECV_BLOCK_SIZE + 1)
                 * sizeof(char);
 
         *ppszReceiveBuffer = (char*) realloc(*ppszReceiveBuffer,
                 new_recv_buffer_size);
     }
 
-    LogInfo("Receive: %d B have been received.", total_read);
-
-    LogInfo("Receive: Checking whether bytes received is a positive "
-            "quantity...");
-
-    if (total_read > 0) {
-        LogInfo("Receive: Bytes received is a positive quantity.");
-
+    if (nTotalBytesRead > 0) {
         // We are done receiving, cap the string off with a null terminator
         // after resizing the buffer to match the total bytes read + 1.  if
         // a connection error happened prior to reading even one byte, then
@@ -664,20 +620,14 @@ int Receive(int sockFd, char **ppszReceiveBuffer) {
         // how we can tell not to call free() again on *buf
 
         *ppszReceiveBuffer = (char*) realloc(*ppszReceiveBuffer,
-                (total_read + 1) * sizeof(char));
+                (nTotalBytesRead + 1) * sizeof(char));
 
         // cap the buffer off with the null-terminator
-        *(*ppszReceiveBuffer + total_read) = '\0';
-
-        LogDebug("Receive: Finished placing content into receive buffer.");
+        *(*ppszReceiveBuffer + nTotalBytesRead) = '\0';
     } else {
-        LogError("Receive: Total bytes received is a negative quantity.");
-
-        LogInfo("Receive: Freeing memory allocated for receiving text...");
+        // Error occurred or the other end terminated the connection.
 
         free_buffer((void**) ppszReceiveBuffer);
-
-        LogInfo("Receive: Memory for receiving text has been released.");
 
         return 0;
     }
@@ -685,12 +635,7 @@ int Receive(int sockFd, char **ppszReceiveBuffer) {
     // Now the storage at address *buf should contain the entire
     // line just received, plus the newline and the null-terminator, plus
     // any previously-received data
-
-    LogDebug("Receive: Returning %d (total B read)", total_read);
-
-    LogDebug("Receive: Done.");
-
-    return total_read;
+    return nTotalBytesRead;
 }
 
 /**
