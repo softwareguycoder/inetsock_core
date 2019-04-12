@@ -93,11 +93,6 @@ void LockSocketMutex() {
 }
 
 void UnlockSocketMutex() {
-    LogDebug("In UnlockSocketMutex");
-
-    LogDebug("UnlockSocketMutex: Checking whether the socket mutex handle has "
-            "been initialized...");
-
     if (NULL == g_pSocketMutex) {
         // If the g_pSocketMutex handle is NULL, then assume that the caller of
         // this library is writing a single-threaded application which will not
@@ -106,33 +101,14 @@ void UnlockSocketMutex() {
         // in the case that the caller of this library did not call
         // CreateSocketMutex in their main function)
 
-        LogDebug("UnlockSocketMutex: The socket mutex handle has not been "
-                "initialized.  Nothing to do.");
-
-        LogDebug("UnlockSocketMutex: Done.");
-
         return;
     }
 
-    LogDebug("UnlockSocketMutex: The socket mutex handle has been "
-            "initialized.");
-
-    LogDebug("UnlockSocketMutex: Attempting to release the currently-active "
-            "lock on the socket mutex...");
-
     int nResult = pthread_mutex_unlock(g_pSocketMutex);
     if (OK != nResult) {
-        LogError("UnlockSocketMutex: Failed to release the socket mutex lock.");
-
-        LogDebug("UnlockSocketMutex: Done.");
-
         perror("UnlockSocketMutex");
         exit(ERROR);
     }
-
-    LogDebug("UnlockSocketMutex: The socket mutex lock has been released.");
-
-    LogDebug("UnlockSocketMutex: Done.");
 }
 
 /**
