@@ -126,7 +126,7 @@ int ListenSocket(int nSocket);
  * about the remote host.
  * @param nSocket Socket file descriptor on which to accept new incoming
  * connections.
- * @param pSockAddr Reference to a sockaddr_in structure that receives info
+ * @param pAddrInfo Reference to a sockaddr_in structure that receives info
  * aboutthe IP address of the remote endpoint.
  * @returns Socket file descriptor representing the local endpoint of the new
  * incoming connection; or a negative number indicating that errno should be
@@ -136,7 +136,7 @@ int ListenSocket(int nSocket);
  * EINVAL if addr is NULL. This function blocks the calling thread until an
  * incoming connection has been  established.
  */
-int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr);
+int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo);
 
 /**
  * @brief Reads a line of data, terminated by the '\n' character, from a socket.

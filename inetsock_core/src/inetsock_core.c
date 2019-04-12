@@ -453,7 +453,7 @@ int ListenSocket(int nSocket) {
  * about the remote host.
  * @param nSocket Socket file descriptor on which to accept new incoming
  * connections.
- * @param pSockAddr Reference to a sockaddr_in structure that receives info
+ * @param pAddrInfo Reference to a sockaddr_in structure that receives info
  * aboutthe IP address of the remote endpoint.
  * @returns Socket file descriptor representing the local endpoint of the new
  * incoming connection; or a negative number indicating that errno should be
@@ -463,7 +463,7 @@ int ListenSocket(int nSocket) {
  * EINVAL if addr is NULL. This function blocks the calling thread until an
  * incoming connection has been  established.
  */
-int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
+int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
 
     int nClientSocket = ERROR;
 
@@ -477,7 +477,7 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
         exit(ERROR);
     }
 
-    if (pSockAddr == NULL) {
+    if (pAddrInfo == NULL) {
         errno = EINVAL;
 
         perror("AcceptSocket");
@@ -493,9 +493,9 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
     // until a new client connection comes in, whereupon it returns
     // a file descriptor that represents the socket on our side that
     // is connected to the client.
-    socklen_t clientAddressLength = sizeof(*pSockAddr);
+    socklen_t clientAddressLength = sizeof(*pAddrInfo);
 
-    if ((nClientSocket = accept(nSocket, (struct sockaddr*) pSockAddr,
+    if ((nClientSocket = accept(nSocket, (struct sockaddr*) pAddrInfo,
             &clientAddressLength)) < 0) {
         if (EBADF != errno) {
             perror("AcceptSocket");
