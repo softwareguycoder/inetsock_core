@@ -125,91 +125,30 @@ void UnlockSocketMutex() {
  *  structure containing information for the remote host.
  */
 int IsHostnameValid(const char *hostnameOrIP, struct hostent **he) {
-    LogDebug("In IsHostnameValid");
-
-    LogDebug("hostnameOrIP: hostnameOrIP = %s", hostnameOrIP);
-
-    LogInfo("IsHostnameValid: Checking whether the 'hostnameOrIP' parameter "
-            "is blank...");
-
     if (IsNullOrWhiteSpace(hostnameOrIP)) {
         // The hostnameOrIP parameter cannot be blank, since we need to find
         // out if the hostname or IP supplied is valid.  Can't very well do that
         // for a blank value!
-
-        LogError("hostnameOrIP parameter is blank.  This parameter is required "
-                "to have a value.");
-
-        LogDebug("IsHostnameValid: Returning FALSE.");
-
-        LogDebug("IsHostnameValid: Done.");
-
         return FALSE;
     }
 
-    LogInfo("IsHostnameValid: The 'hostnameOrIP' parameter has a value.");
-
-    LogInfo("IsHostnameValid: Checking whether the 'he' parameter has "
-            "a value...");
-
     if (he == NULL) {
-
-        LogError("IsHostnameValid: The 'he' parameter has a null reference.");
-
-        LogDebug("IsHostnameValid: Returning FALSE.");
-
-        LogDebug("IsHostnameValid: Done.");
-
         // return FALSE if no storage location for the 'he' pointer passed
         return FALSE;
     }
 
-    LogInfo("IsHostnameValid: The 'he' parameter has a value.");
-
-    LogInfo("IsHostnameValid: Attempting to obtain a lock on the socket "
-            "mutex...");
-
     LockSocketMutex();
     {
-        LogInfo("IsHostnameValid: Lock obtained on the socket mutex, "
-                "or no mutex was created.");
-
-        LogInfo("IsHostnameValid: Resolving host name or IP address '%s'...",
-                hostnameOrIP);
-
         if ((*he = gethostbyname(hostnameOrIP)) == NULL) {
-            LogError("IsHostnameValid: Hostname or IP address resolution "
-                    "failed.");
-
             *he = NULL;
 
-            LogInfo("IsHostnameValid: 'he' parameter set to NULL.");
-
-            LogDebug("IsHostnameValid: Returning FALSE.");
-
-            LogDebug("IsHostnameValid: Done.");
-
-            LogInfo("IsHostnameValid: Releasing socket mutex lock...");
-
             UnlockSocketMutex();
-
-            LogInfo("IsHostnameValid: Socket mutex lock released.");
 
             // return FALSE if no storage location for the 'he' pointer passed
             return FALSE;
         }
-
-        LogInfo("IsHostnameValid: Releasing socket mutex lock...");
     }
     UnlockSocketMutex();
-
-    LogInfo("IsHostnameValid: Socket mutex lock released.");
-
-    LogInfo("IsHostnameValid: Hostname or IP address resolution succeeded.");
-
-    LogDebug("IsHostnameValid: Returning TRUE.");
-
-    LogDebug("IsHostnameValid: Done.");
 
     return TRUE;
 }
