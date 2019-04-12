@@ -361,131 +361,52 @@ void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
 
 /**
  * @brief Binds a server socket to the address and port specified by the 'addr'
- *   parameter.
+ * parameter.
  * @param sockFd Socket file descriptor that references the socket to be bound.
  * @param addr Pointer to a sockaddr_in structure that specifies the host
  * and port to which the socket endpoint should be bound.
  */
 int BindSocket(int sockFd, struct sockaddr_in *addr) {
-    LogDebug("In BindSocket");
-
     int retval = ERROR;
 
     LockSocketMutex();
     {
-        LogDebug("BindSocket: sockFd = %d", sockFd);
-
-        LogInfo("BindSocket: Checking whether a valid socket file "
-                "descriptor was passed...");
-
         if (!IsSocketValid(sockFd)) {
-            LogError("BindSocket: Invalid socket file descriptor passed.");
-
             errno = EBADF;
 
-            LogDebug("BindSocket: Set errno = %d", errno);
-
             perror("BindSocket");
-
-            LogDebug("BindSocket: Attempting to release the socket mutex "
-                    "lock...");
 
             UnlockSocketMutex();
 
-            LogDebug("BindSocket: Socket mutex lock has been released.");
-
-            LogDebug("BindSocket: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
-
-            LogDebug("BindSocket: Socket mutex resources freed.");
-
-            LogDebug("BindSocket: Done.");
 
             exit(ERROR);
         }
-
-        LogInfo("BindSocket: A valid socket file descriptor has been passed.");
-
-        LogInfo("BindSocket: Checking whether a valid sockaddr_in "
-                "reference has been passed...");
 
         if (addr == NULL) {
-            LogError("BindSocket: A null reference has been passed for the "
-                    "'addr' parameter.  Nothing to do.");
-
             errno = EINVAL; // addr param required
 
-            LogDebug("BindSocket: Set errno = %d", errno);
-
             perror("BindSocket");
-
-            LogDebug("BindSocket: Attempting to release the socket "
-                    "mutex lock...");
 
             UnlockSocketMutex();
 
-            LogDebug("BindSocket: Socket mutex lock has been released.");
-
-            LogDebug("BindSocket: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
-
-            LogDebug("BindSocket: Socket mutex resources freed.");
-
-            LogDebug("BindSocket: Done.");
 
             exit(ERROR);
         }
-
-        LogInfo("BindSocket: A valid sockaddr_in reference has been passed.");
-
-        LogInfo("BindSocket: Attempting to bind socket %d to "
-                "the server address...", sockFd);
 
         retval = bind(sockFd, (struct sockaddr*) addr, sizeof(*addr));
-
-        LogDebug("BindSocket: retval = %d", retval);
-
         if (retval < 0) {
-            LogError("BindSocket: Failed to bind socket.");
-
-            LogDebug("BindSocket: errno = %d", errno);
-
             perror("BindSocket");
-
-            LogDebug("BindSocket: Attempting to release the socket "
-                    "mutex lock...");
 
             UnlockSocketMutex();
 
-            LogDebug("BindSocket: Socket mutex lock has been released.");
-
-            LogDebug("BindSocket: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
-
-            LogDebug("BindSocket: Socket mutex resources freed.");
-
-            LogDebug("BindSocket: Done.");
 
             exit(ERROR);
         }
-
-        LogInfo("BindSocket: Successfully bound the server socket.");
-
-        LogDebug("BindSocket: Attemtping to release the socket mutex lock...");
     }
     UnlockSocketMutex();
-
-    LogDebug("BindSocket: Released the socket mutex lock.");
-
-    LogInfo("BindSocket: Returning %d", retval);
-
-    LogDebug("BindSocket: Done.");
 
     return retval;
 }
@@ -501,95 +422,35 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
  * returned if the operation was successful.
  */
 int ListenSocket(int sockFd) {
-    LogInfo("In ListenSocket");
-
     int retval = ERROR;
-
-    LogDebug(
-            "ListenSocket: Attempting to obtain a lock on the socket mutex...");
 
     LockSocketMutex();
     {
-        LogDebug("ListenSocket: Socket mutex has been locked.");
-
-        LogInfo("ListenSocket: Checking for a valid socket file descriptor...");
-
-        LogDebug("ListenSocket: sockFd = %d", sockFd);
-
         if (!IsSocketValid(sockFd)) {
-            LogError("ListenSocket: Invalid socket file descriptor passed.");
-
             errno = EBADF;
-
-            LogDebug("ListenSocket: Set errno = %d", errno);
 
             perror("ListenSocket");
 
-            LogDebug("ListenSocket: Attempting to release the socket mutex "
-                    "lock...");
-
             UnlockSocketMutex();
-
-            LogDebug("ListenSocket: Socket mutex lock has been released.");
-
-            LogDebug("ListenSocket: Attempting to free socket mutex "
-                    "resources...");
 
             FreeSocketMutex();
 
-            LogDebug("ListenSocket: Socket mutex resources freed.");
-
-            LogDebug("ListenSocket: Done.");
-
             exit(ERROR);
         }
-
-        LogDebug("ListenSocket: A valid socket file descriptor has been "
-                "passed.");
-
-        LogInfo("ListenSocket: Calling the listen function...");
 
         retval = listen(sockFd, BACKLOG_SIZE);
 
-        LogDebug("ListenSocket: The listen function has been called.");
-
-        LogDebug("ListenSocket: retval = %d", retval);
-
         if (retval < 0) {
-            LogError("ListenSocket: Failed to listen on socket.");
-
             perror("ListenSocket");
-
-            LogDebug("ListenSocket: Attempting to release the socket "
-                    "mutex lock...");
 
             UnlockSocketMutex();
 
-            LogDebug("ListenSocket: Socket mutex lock has been released.");
-
-            LogDebug("ListenSocket: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
-
-            LogDebug("ListenSocket: Socket mutex resources freed.");
-
-            LogDebug("ListenSocket: Done.");
 
             exit(ERROR);
         }
-
-        LogInfo("ListenSocket: Listen operation successful.");
-
-        LogDebug("ListenSocket: Releasing the socket mutex lock...");
     }
     UnlockSocketMutex();
-
-    LogDebug("ListenSocket: Socket mutex lock released.");
-
-    LogInfo("ListenSocket: Returning %d", retval);
-
-    LogDebug("ListenSocket: Done.");
 
     return retval;
 }
