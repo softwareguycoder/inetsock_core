@@ -73,46 +73,21 @@ void FreeSocketMutex() {
 }
 
 void LockSocketMutex() {
-    LogDebug("In LockSocketMutex");
-
     int nResult = ERROR;
-
-    LogDebug("LockSocketMutex: Checking if the socket mutex handle has "
-            "been initialized...");
 
     if (NULL == g_pSocketMutex) {
         // just do nothing. (g_pSocketMutex will have the value of NULL in
         // the case that the caller of this library did not call
         // CreateSocketMutex in their main function)
 
-        LogDebug("LockSocketMutex: The socket mutex handle has not been "
-                "initialized.  Nothing to do.");
-
-        LogDebug("LockSocketMutex: Done.");
-
         return; /* if we are here then we are not using mutexes at all */
     }
 
-    LogDebug("LockSocketMutex: The socket mutex handle is initialized.");
-
-    LogDebug("LockSocketMutex: Attempting to obtain a lock on the socket "
-            "mutex...");
-
     nResult = pthread_mutex_lock(g_pSocketMutex);
     if (OK != nResult) {
-        LogError("LockSocketMutex: Failed to obtain a lock on the socket "
-                "mutex.");
-
-        LogDebug("LockSocketMutex: Done.");
-
         perror("LockSocketMutex");
         exit(ERROR);
     }
-
-    LogDebug("LockSocketMutex: A lock has been obtained on the "
-            "socket mutex.");
-
-    LogDebug("LockSocketMutex: Done.");
 
     return; 	// Succeeded
 }
