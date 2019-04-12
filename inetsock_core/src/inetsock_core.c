@@ -641,150 +641,75 @@ int Receive(int sockFd, char **ppszReceiveBuffer) {
 /**
  * @brief Helper function to guarantee that entire message provided gets
  * sent over a socket.
- * @param sockFd File descriptor for the socket.  Socket must be in the
+ * @param nSocket File descriptor for the socket.  Socket must be in the
  * connected state.
- * @param buffer Reference to the start of the buffer containing the message
+ * @param pszMessage Reference to the start of the buffer containing the message
  * to be sent.
- * @param length Size of the buffer to be used for sending.
+ * @param nLength Size of the buffer to be used for sending.
  * @return Total number of bytes sent, or -1 if an error occurred.
  * @remarks This function will kill the program after spitting out an error
  * message if something goes wrong.
  */
-int SendAll(int sockFd, const char *message, size_t length) {
-    LogDebug("In SendAll");
+int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
+    int nTotalBytesSent = 0;
 
-    int total_bytes_sent = 0;
-
-    LogDebug("SendAll: Checking whether socket file descriptor is a "
-            "valid value...");
-
-    LogDebug("SendAll: sockFd = %d", sockFd);
-
-    if (!IsSocketValid(sockFd)) {
-        LogError("SendAll: Invalid socket file descriptor.");
-
-        LogError("SendAll: Invalid socket file descriptor passed.");
-
+    // Make sure we have a valid socket file descriptor
+    if (!IsSocketValid(nSocket)) {
         errno = EBADF;
 
         perror("SendAll");
 
-        LogDebug("SendAll: Attempting to free socket mutex resources...");
-
         FreeSocketMutex();
-
-        LogDebug("SendAll: Socket mutex resources freed.");
-
-        LogDebug("SendAll: Done.");
 
         exit(ERROR);
     }
 
-    LogInfo("SendAll: A valid socket file descriptor was passed.");
-
-    LogInfo("SendAll: Checking whether the buffer of text to send is empty...");
-
-    if (message == NULL || ((char*) message)[0] == '\0'
-            || strlen((char*) message) == 0) {
-        LogError("SendAll: Send buferr is empty.  This value is required.");
-
+    if (pszMessage == NULL || ((char*) pszMessage)[0] == '\0'
+            || strlen((char*) pszMessage) == 0) {
         errno = EINVAL;
 
         perror("SendAll");
 
-        LogDebug("SendAll: Attempting to free socket mutex resources...");
-
         FreeSocketMutex();
-
-        LogDebug("SendAll: Socket mutex resources freed.");
-
-        LogDebug("SendAll: Done.");
 
         exit(ERROR);
     }
 
-    LogInfo("SendAll: The send buffer is not empty.");
+    char trimmed_message[strlen(pszMessage) + 1];
+    Trim(trimmed_message, strlen(pszMessage) + 1, pszMessage);
 
-    char trimmed_message[strlen(message) + 1];
-    Trim(trimmed_message, strlen(message) + 1, message);
-
-    LogInfo("SendAll: message = '%s'", trimmed_message);
-
-    LogInfo("SendAll: Checking whether the send buffer's size "
-            "is a positive value...");
-
-    LogInfo("SendAll: length = %d", (int) length);
-
-    if ((int) length <= 0) {
-        LogError("SendAll: Length should be a positive nonzero quanity.");
-
+    if ((int) nLength <= 0) {
         errno = EINVAL;
 
         perror("SendAll");
 
-        LogDebug("SendAll: Attempting to free socket mutex resources...");
-
         FreeSocketMutex();
-
-        LogDebug("SendAll: Socket mutex resources freed.");
-
-        LogDebug("SendAll: Done.");
 
         exit(ERROR);
     }
 
-    char *ptr = (char*) message;
+    char *ptr = (char*) pszMessage;
 
-    int remaining = (int) length;
+    int nBytesRemaining = (int) nLength;
 
-    LogInfo("SendAll: Starting send loop...");
+    while (nTotalBytesSent < nBytesRemaining) {
+        int nBytesSent = send(nSocket, ptr, nLength, 0);
 
-    LogDebug("SendAll: total_bytes_sent = %d B", total_bytes_sent);
-
-    LogDebug("SendAll: remaining = %d B", remaining);
-
-    while (total_bytes_sent < remaining) {
-        LogInfo("SendAll: Calling socket send function...");
-
-        int bytes_sent = send(sockFd, ptr, length, 0);
-
-        LogDebug("SendAll: bytes_sent = %d B", bytes_sent);
-
-        if (bytes_sent < 1) {
+        if (nBytesSent < 1) {
             perror("SendAll");
 
-            LogDebug("SendAll: Attempting to free socket mutex resources...");
-
             FreeSocketMutex();
-
-            LogDebug("SendAll: Socket mutex resources freed.");
-
-            LogDebug("SendAll: Done.");
 
             exit(ERROR);
         }
 
-        LogDebug("SendAll: Updating counters...");
+        nTotalBytesSent += nBytesSent;
 
-        total_bytes_sent += bytes_sent;
-
-        ptr += bytes_sent;
-        remaining -= bytes_sent;
-
-        LogDebug("SendAll: total_bytes_sent = %d B", total_bytes_sent);
-
-        LogDebug("SendAll: remaining = %d B", remaining);
+        ptr += nBytesSent;
+        nBytesRemaining -= nBytesSent;
     }
 
-    LogDebug("SendAll: Sending complete.");
-
-    LogDebug("SendAll: Socket mutex lock released.");
-
-    LogInfo("SendAll: Result = %d B total sent.", total_bytes_sent);
-
-    LogDebug("SendAll: Done.");
-
-    return total_bytes_sent;
+    return nTotalBytesSent;
 }
 
 int Send(int sockFd, const char *buf) {
