@@ -29,9 +29,9 @@ void FreeSocketMutex();
 /**
  * @brief Attempts to resolve the hostname or IP address provided with
  * the Domain Name System (DNS) and reports success or failure.
- * @param hostnameOrIP The hostname or IP address of the remote computer
+ * @param pszHostName The hostname or IP address of the remote computer
  * that is to be resolved with DNS.
- * @param Address of a storage location that is to be filled with a
+ * @param ppHostEntry Address of a storage location that is to be filled with a
  *  hostent structure upon successful resolution of the hostname or
  *  IP address provided.
  * @returns Zero if resolution has failed; nonzero otherwise.
@@ -39,7 +39,7 @@ void FreeSocketMutex();
  *  will be the address of a storage location containing a hostent
  *  structure containing information for the remote host.
  */
-int IsHostnameValid(const char *hostnameOrIP, struct hostent **he);
+int IsHostnameValid(const char *pszHostName, struct hostent **ppHostEntry);
 
 /**
  * @brief Determines whether the socket file descriptor passed is valid.
@@ -67,16 +67,16 @@ void free_buffer(void **ppBuffer);
  *   code.
  *  @param nSocket Socket file descriptor to be closed after the error
  *  has been reported.
- *  @param msg Additional error text to be echoed to the console.
+ *  @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error_and_close(int nSocket, const char *msg);
+void error_and_close(int nSocket, const char *pszErrorMessage);
 
 /**
  *  @brief Reports the error message specified as well as the error from
  *  the system. Exits the program with the ERROR exit code.
- *  @param msg Additional error text to be echoed to the console.
+ *  @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error(const char* msg);
+void error(const char* pszErrorMessage);
 
 /**
  *  @brief Creates a new socket endpoint for communicating with a remote
@@ -89,28 +89,26 @@ void error(const char* msg);
 int CreateSocket();
 
 /**
- *  @brief Populates the port and address information for a server
- *  so the server knows the hostname/IP address and port of the computer
- *  it is listening on.
- *  @param port String containing the port number to listen on.  Must be numeric.
- *  @param hostnameOrIp String containing the hostname or IP address of the server
- *  computer.  Can be NULL, in which case, htons(INADDR_ANY) will be set.  Use NULL
- *  for a sevrer, and a specific value for a client.
- *  @param addr Address of storage that will receive a filled-in sockaddr_in structure
- *  that defines the server endpoint.
- *  @remarks If invalid input is supplied or an error occurs, reports thse problem
- *  to the console and forces the program to die with the ERROR exit code.
+ * @brief Populates the port and address information for a server
+ * so the server knows the hostname/IP address and port of the computer
+ * it is listening on.
+ * @param pszPort String containing the port number to listen on.  Must be numeric.
+ * @param pAddrInfo Address of storage that will receive a filled-in sockaddr_in
+ * structure that defines the server endpoint.
+ * @remarks If invalid input is supplied or an error occurs, reports
+ * these problems to the console and forces the program to die with the
+ * ERROR exit code.
  */
-void GetServerAddrInfo(const char *port, struct sockaddr_in *addr);
+void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo);
 
 /**
- *  @brief Binds a server socket to the address and port specified by the 'addr'
- *   parameter.
- *  @param nSocket Socket file descriptor that references the socket to be bound.
- *  @param addr Pointer to a sockaddr_in structure that specifies the host and port
- *  to which the socket endpoint should be bound.
-*/
-int BindSocket(int nSocket, struct sockaddr_in *addr);
+ * @brief Binds a server socket to the address and port specified by the 'addr'
+ * parameter.
+ * @param nSocket Socket file descriptor that references the socket to be bound.
+ * @param pAddrInfo Pointer to a sockaddr_in structure that specifies the host
+ * and port to which the socket endpoint should be bound.
+ */
+int BindSocket(int nSocket, struct sockaddr_in *pAddrInfo);
 
 /**
  * @brief Sets up a TCP or UDP server socket to listen on a port and IP address
@@ -124,33 +122,35 @@ int BindSocket(int nSocket, struct sockaddr_in *addr);
 int ListenSocket(int nSocket);
 
 /**
- * @brief Accepts an incoming connection on a socket and returns information about
- * the remote host.
- * @param nSocket Socket file descriptor on which to accept new incoming connections.
- * @param addr Reference to a sockaddr_in structure that receives information about
- * the IP address of the remote endpoint.
+ * @brief Accepts an incoming connection on a socket and returns information
+ * about the remote host.
+ * @param nSocket Socket file descriptor on which to accept new incoming
+ * connections.
+ * @param pSockAddr Reference to a sockaddr_in structure that receives info
+ * aboutthe IP address of the remote endpoint.
  * @returns Socket file descriptor representing the local endpoint of the new
- * incoming connection; or a negative number indicating that errno should be read
- * for the error description.
- * @remarks Returns ERROR if any of the following are true: (a) sets errno to EBADF
- * if nSocket is an invalid value (nonpositive) or (b) sets errno to EINVAL if addr
- * is NULL.  If the incoming connection is accepted successfully, this function also
- * calls fcntl on the new file descriptor to set the incoming socket connection to be
- * non-blocking.  This allows data to be read from recv buffer as it is still coming
- * in.  This function blocks the calling thread until an incoming connection has been
- * established.
+ * incoming connection; or a negative number indicating that errno should be
+ * read for the error description.
+ * @remarks Returns ERROR if any of the following are true: (a) sets errno
+ * to EBADF if nSocket is an invalid value (nonpositive) or (b) sets errno to
+ * EINVAL if addr is NULL. This function blocks the calling thread until an
+ * incoming connection has been  established.
  */
-int AcceptSocket(int nSocket, struct sockaddr_in *addr);
+int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr);
 
-/** @brief Reads a line of data, terminated by the '\n' character, from a socket.
- *  @param nSocket Socket file descriptor from which to receive data.
- *  @param ppszReceiveBuffer Reference to an address at which to allocate storage for the received data.
- *  @returns Total bytes read for the current line or a negative number otherwise.
- *  @remarks This function will forcibly terminate the calling program with an exit
- *  code of ERROR if the operation fails.  It is the responsibility of the caller to
- *  free the memory referenced by *buf.  The caller must always pass NULL for buf.  If
- *  valid storage is passed, this function will free the storage referenced by *buf and
- *  allocate brand-new storage for the incoming line.
+/**
+ * @brief Reads a line of data, terminated by the '\n' character, from a socket.
+ * @param nSocket Socket file descriptor from which to receive data.
+ * @param ppszReceiveBuffer Reference to an address at which to allocate storage
+ * for the received data.
+ * @returns Total bytes read for the current line or a negative number
+ * otherwise.
+ * @remarks This function will forcibly terminate the calling program
+ * with an exit code of ERROR if the operation fails.  It is the responsibility
+ * of the caller to free the memory referenced by *buf.  The caller must always
+ * pass NULL for buf.  If valid storage is passed, this function will free the
+ * storage referenced by *buf and allocate brand-new storage for the incoming
+ * line.
  */
 int Receive(int nSocket, char **ppszReceiveBuffer);
 

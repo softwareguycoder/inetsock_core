@@ -4,7 +4,8 @@
 #include "stdafx.h"
 #include "inetsock_core.h"
 
-#define CONNECT_OPERATION_FAILED "connect: Failed to contact server on '%s' and port %d.\n"
+#define CONNECT_OPERATION_FAILED "connect: Failed to contact server on " \
+                                 "'%s' and port %d.\n"
 
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
@@ -114,9 +115,9 @@ void UnlockSocketMutex() {
 /**
  * @brief Attempts to resolve the hostname or IP address provided with
  * the Domain Name System (DNS) and reports success or failure.
- * @param hostnameOrIP The hostname or IP address of the remote computer
+ * @param pszHostName The hostname or IP address of the remote computer
  * that is to be resolved with DNS.
- * @param Address of a storage location that is to be filled with a
+ * @param ppHostEntry Address of a storage location that is to be filled with a
  *  hostent structure upon successful resolution of the hostname or 
  *  IP address provided.  
  * @returns Zero if resolution has failed; nonzero otherwise.
@@ -124,23 +125,23 @@ void UnlockSocketMutex() {
  *  will be the address of a storage location containing a hostent
  *  structure containing information for the remote host.
  */
-int IsHostnameValid(const char *hostnameOrIP, struct hostent **he) {
-    if (IsNullOrWhiteSpace(hostnameOrIP)) {
+int IsHostnameValid(const char *pszHostName, struct hostent **ppHostEntry) {
+    if (IsNullOrWhiteSpace(pszHostName)) {
         // The hostnameOrIP parameter cannot be blank, since we need to find
         // out if the hostname or IP supplied is valid.  Can't very well do that
         // for a blank value!
         return FALSE;
     }
 
-    if (he == NULL) {
+    if (ppHostEntry == NULL) {
         // return FALSE if no storage location for the 'he' pointer passed
         return FALSE;
     }
 
     LockSocketMutex();
     {
-        if ((*he = gethostbyname(hostnameOrIP)) == NULL) {
-            *he = NULL;
+        if ((*ppHostEntry = gethostbyname(pszHostName)) == NULL) {
+            *ppHostEntry = NULL;
 
             UnlockSocketMutex();
 
@@ -195,16 +196,17 @@ void free_buffer(void **ppBuffer) {
  *   code.
  * @param nSocket Socket file descriptor to be closed after the error
  *  has been reported.
- * @param msg Additional error text to be echoed to the console.
+ * @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error_and_close(int nSocket, const char *msg) {
-    if (msg == NULL || strlen(msg) == 0 || msg[0] == '\0') {
+void error_and_close(int nSocket, const char *pszErrorMessage) {
+    if (IsNullOrWhiteSpace(pszErrorMessage)) {
         perror(NULL);
         exit(ERROR);
         return;   // This return statement might not fire, but just in case.
     }
 
-    LogError(msg);
+    LogError(pszErrorMessage);
+
     perror(NULL);
 
     if (nSocket > 0) {
@@ -218,14 +220,14 @@ void error_and_close(int nSocket, const char *msg) {
 /**
  * @brief Reports the error message specified as well as the error from
  *  the system. Exits the program with the ERROR exit code.
- * @param msg Additional error text to be echoed to the console.
+ * @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error(const char* msg) {
-    if (msg == NULL || strlen(msg) == 0 || msg[0] == '\0') {
+void error(const char* pszErrorMessage) {
+    if (IsNullOrWhiteSpace(pszErrorMessage)) {
         return;
     }
 
-    LogError(msg);
+    LogError(pszErrorMessage);
     perror(NULL);
     exit(ERROR);
 }
@@ -279,57 +281,52 @@ void SetSocketNonBlocking(int nSocket) {
 }
 
 int SetSocketReusable(int nSocket) {
-    int retval = ERROR;
+    int nResult = ERROR;
 
     if (!IsSocketValid(nSocket)) {
 
-        return retval;
+        return nResult;
     }
 
     // Set socket options to allow the socket to be reused.
     LockSocketMutex();
     {
-        retval = setsockopt(nSocket, SOL_SOCKET, SO_REUSEADDR, &(int ) {
+        nResult = setsockopt(nSocket, SOL_SOCKET, SO_REUSEADDR, &(int ) {
                     1 }, sizeof(int));
-        if (retval < 0) {
+        if (nResult < 0) {
             perror("setsockopt");
 
             UnlockSocketMutex();
 
-            return retval;
+            return nResult;
         }
     }
     UnlockSocketMutex();
 
-    return retval;
+    return nResult;
 }
 
 /**
  * @brief Populates the port and address information for a server
  * so the server knows the hostname/IP address and port of the computer
  * it is listening on.
- * @param port String containing the port number to listen on.  Must be numeric.
- * @param hostnameOrIp String containing the hostname or IP address of the
- * server computer.  Can be NULL, in which case, htons(INADDR_ANY) will be set.
- * Use NULL for a sevrer, and a specific value for a client.
- * @param addr Address of storage that will receive a filled-in sockaddr_in
+ * @param pszPort String containing the port number to listen on.  Must be numeric.
+ * @param pAddrInfo Address of storage that will receive a filled-in sockaddr_in
  * structure that defines the server endpoint.
  * @remarks If invalid input is supplied or an error occurs, reports
  * these problems to the console and forces the program to die with the
  * ERROR exit code.
  */
-void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
+void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo) {
+    if (IsNullOrWhiteSpace(pszPort)) {
+        FreeSocketMutex();
+
+        exit(ERROR);
+    }
+
     LockSocketMutex();
     {
-        if (IsNullOrWhiteSpace(port)) {
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-
-        if (addr == NULL) {
+        if (pAddrInfo == NULL) {
             UnlockSocketMutex();
 
             FreeSocketMutex();
@@ -340,7 +337,7 @@ void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
         // Get the port number from its string representation and then
         // validate that it is in the proper range
         int portnum = 0;
-        int result = StringToLong(port, (long*) &portnum);
+        int result = StringToLong(pszPort, (long*) &portnum);
         if (result >= 0 && !IsUserPortValid(portnum)) {
 
             UnlockSocketMutex();
@@ -352,9 +349,9 @@ void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
 
         // Populate the fields of the sockaddr_in structure passed to us
         // with the proper values.
-        addr->sin_family = AF_INET;
-        addr->sin_port = htons(portnum);
-        addr->sin_addr.s_addr = htons(INADDR_ANY);
+        pAddrInfo->sin_family = AF_INET;
+        pAddrInfo->sin_port = htons(portnum);
+        pAddrInfo->sin_addr.s_addr = htons(INADDR_ANY);
     }
     UnlockSocketMutex();
 }
@@ -363,27 +360,25 @@ void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
  * @brief Binds a server socket to the address and port specified by the 'addr'
  * parameter.
  * @param nSocket Socket file descriptor that references the socket to be bound.
- * @param addr Pointer to a sockaddr_in structure that specifies the host
+ * @param pAddrInfo Pointer to a sockaddr_in structure that specifies the host
  * and port to which the socket endpoint should be bound.
  */
-int BindSocket(int nSocket, struct sockaddr_in *addr) {
-    int retval = ERROR;
+int BindSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
+    int nResult = ERROR;
+
+    if (!IsSocketValid(nSocket)) {
+        errno = EBADF;
+
+        perror("BindSocket");
+
+        FreeSocketMutex();
+
+        exit(ERROR);
+    }
 
     LockSocketMutex();
     {
-        if (!IsSocketValid(nSocket)) {
-            errno = EBADF;
-
-            perror("BindSocket");
-
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-
-        if (addr == NULL) {
+        if (pAddrInfo == NULL) {
             errno = EINVAL; // addr param required
 
             perror("BindSocket");
@@ -395,8 +390,8 @@ int BindSocket(int nSocket, struct sockaddr_in *addr) {
             exit(ERROR);
         }
 
-        retval = bind(nSocket, (struct sockaddr*) addr, sizeof(*addr));
-        if (retval < 0) {
+        nResult = bind(nSocket, (struct sockaddr*) pAddrInfo, sizeof(*pAddrInfo));
+        if (nResult < 0) {
             perror("BindSocket");
 
             UnlockSocketMutex();
@@ -408,7 +403,7 @@ int BindSocket(int nSocket, struct sockaddr_in *addr) {
     }
     UnlockSocketMutex();
 
-    return retval;
+    return nResult;
 }
 
 /**
@@ -422,25 +417,23 @@ int BindSocket(int nSocket, struct sockaddr_in *addr) {
  * returned if the operation was successful.
  */
 int ListenSocket(int nSocket) {
-    int retval = ERROR;
+    int nResult = ERROR;
+
+    if (!IsSocketValid(nSocket)) {
+        errno = EBADF;
+
+        perror("ListenSocket");
+
+        FreeSocketMutex();
+
+        exit(ERROR);
+    }
 
     LockSocketMutex();
     {
-        if (!IsSocketValid(nSocket)) {
-            errno = EBADF;
+        nResult = listen(nSocket, BACKLOG_SIZE);
 
-            perror("ListenSocket");
-
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-
-        retval = listen(nSocket, BACKLOG_SIZE);
-
-        if (retval < 0) {
+        if (nResult < 0) {
             perror("ListenSocket");
 
             UnlockSocketMutex();
@@ -452,7 +445,7 @@ int ListenSocket(int nSocket) {
     }
     UnlockSocketMutex();
 
-    return retval;
+    return nResult;
 }
 
 /**
@@ -460,7 +453,7 @@ int ListenSocket(int nSocket) {
  * about the remote host.
  * @param nSocket Socket file descriptor on which to accept new incoming
  * connections.
- * @param addr Reference to a sockaddr_in structure that receives information
+ * @param pSockAddr Reference to a sockaddr_in structure that receives info
  * aboutthe IP address of the remote endpoint.
  * @returns Socket file descriptor representing the local endpoint of the new
  * incoming connection; or a negative number indicating that errno should be
@@ -500,10 +493,10 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
     // until a new client connection comes in, whereupon it returns
     // a file descriptor that represents the socket on our side that
     // is connected to the client.
-    socklen_t client_address_len = sizeof(*pSockAddr);
+    socklen_t clientAddressLength = sizeof(*pSockAddr);
 
     if ((nClientSocket = accept(nSocket, (struct sockaddr*) pSockAddr,
-            &client_address_len)) < 0) {
+            &clientAddressLength)) < 0) {
         if (EBADF != errno) {
             perror("AcceptSocket");
 
@@ -531,7 +524,7 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
 /**
  * @brief Reads a line of data, terminated by the '\n' character, from a socket.
  * @param nSocket Socket file descriptor from which to receive data.
- * @param buf Reference to an address at which to allocate storage
+ * @param ppszReceiveBuffer Reference to an address at which to allocate storage
  * for the received data.
  * @returns Total bytes read for the current line or a negative number
  * otherwise.
@@ -559,7 +552,7 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
         return 0;
     }
 
-    int bytes_read = 0;
+    int nBytesRead = 0;
 
     // Allocate up some brand-new storage of size RECV_BLOCK_SIZE
     // plus an extra slot to hold the null-terminator.  Free any
@@ -575,8 +568,8 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
 
     while (1) {
         char ch;		// receive one char at a time until a newline is found
-        bytes_read = recv(nSocket, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
-        if (bytes_read < 0) {
+        nBytesRead = recv(nSocket, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
+        if (nBytesRead < 0) {
             if (errno == EBADF || errno == EWOULDBLOCK) {
                 sleep(1); /* allow any other threads receiving to run */
                 continue;
@@ -593,7 +586,7 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
         *(*ppszReceiveBuffer + nTotalBytesRead) = ch;
 
         // Tally the total bytes read overall
-        nTotalBytesRead += bytes_read;
+        nTotalBytesRead += nBytesRead;
 
         // If the newline ('\n') character was the char received,
         // then we're done; it's time to apply the null terminator.
@@ -604,11 +597,11 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
         // re-allocate more memory and make sure to leave room
         // for the null-terminator.
 
-        int new_recv_buffer_size = (nTotalBytesRead + RECV_BLOCK_SIZE + 1)
+        int nNewReceiveBufferSize = (nTotalBytesRead + RECV_BLOCK_SIZE + 1)
                 * sizeof(char);
 
         *ppszReceiveBuffer = (char*) realloc(*ppszReceiveBuffer,
-                new_recv_buffer_size);
+                nNewReceiveBufferSize);
     }
 
     if (nTotalBytesRead > 0) {
@@ -674,9 +667,6 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
 
         exit(ERROR);
     }
-
-    char trimmed_message[strlen(pszMessage) + 1];
-    Trim(trimmed_message, strlen(pszMessage) + 1, pszMessage);
 
     if ((int) nLength <= 0) {
         errno = EINVAL;
@@ -771,15 +761,15 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
         exit(result);
     }
 
-    struct hostent *he;						// Host entry
-    struct sockaddr_in server_address; 		// Structure for the server
+    struct hostent *pHostEntry;				// Host entry
+    struct sockaddr_in serverAddress; 		// Structure for the server
                                             // address and port
 
     // First, try to resolve the host name or IP address passed to us,
     // to ensure that the host can even be found on the network in the first
     // place.  Calling the function below also has the added bonus of
     // filling in a hostent structure for us if it succeeds.
-    if (!IsHostnameValid(pszHostName, &he)) {
+    if (!IsHostnameValid(pszHostName, &pHostEntry)) {
         if (GetErrorLogFileHandle() != stderr) {
             fprintf(stderr, "ConnectSocket: Cannot connect to server on '%s'.",
                     pszHostName);
@@ -795,20 +785,21 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
     LockSocketMutex();
     {
         /* copy the network address to sockaddr_in structure */
-        memcpy(&server_address.sin_addr, he->h_addr_list[0], he->h_length);
-        server_address.sin_family = AF_INET;
-        server_address.sin_port = htons(nPort);
+        memcpy(&serverAddress.sin_addr, pHostEntry->h_addr_list[0], pHostEntry->h_length);
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_port = htons(nPort);
 
-        if ((result = connect(nSocket, (struct sockaddr*) &server_address,
-                sizeof(server_address))) < 0) {
+        if ((result = connect(nSocket, (struct sockaddr*) &serverAddress,
+                sizeof(serverAddress))) < 0) {
             UnlockSocketMutex();
 
             FreeSocketMutex();
 
             CloseSocket(nSocket);
 
-            /* If we are logging to a file and not the screen, print a message on the
-             * screen for an interactive user that the connect operation failed. */
+            /* If we are logging to a file and not the screen, print a
+             * message on the screen for an interactive user that the connect
+             * operation failed. */
             if (GetLogFileHandle() != stdout) {
                 fprintf(stdout, CONNECT_OPERATION_FAILED, pszHostName, nPort);
             }
@@ -825,7 +816,8 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
 
 void CloseSocket(int nSocket) {
     if (!IsSocketValid(nSocket)) {
-        return;	// just silently fail if the socket file descriptor passed is invalid
+        return;	// just silently fail if the socket file descriptor
+                    // passed is invalid
     }
 
     if (OK != shutdown(nSocket, SHUT_RD)) {
@@ -838,9 +830,9 @@ void CloseSocket(int nSocket) {
                 "descriptor %d.", nSocket);
     }
 
-    int retval = close(nSocket);
+    int nResult = close(nSocket);
 
-    if (retval < 0) {
+    if (nResult < 0) {
         return;
     }
 }
