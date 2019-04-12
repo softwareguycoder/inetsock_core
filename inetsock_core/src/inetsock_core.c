@@ -319,63 +319,20 @@ int SetSocketReusable(int sockFd) {
  * ERROR exit code.
  */
 void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
-
-    LogInfo("In GetServerAddrInfo");
-
-    LogDebug("GetServerAddrInfo: Obtaining a lock on the socket mutex...");
-
     LockSocketMutex();
     {
-        LogDebug("GetServerAddrInfo: Lock obtained on socket mutex or "
-                "it's not needed.");
-
-        LogInfo("GetServerAddrInfo: port = '%s'", port);
-
-        LogInfo("GetServerAddrInfo: Checking whether the 'port' "
-                "parameter has a value...");
-
         if (IsNullOrWhiteSpace(port)) {
-            LogError("GetServerAddrInfo: String containing the port number "
-                    "is blank.");
-
-            LogDebug("GetServerAddrInfo: Attempting to release the socket "
-                    "mutex lock...");
-
             UnlockSocketMutex();
 
-            LogDebug("GetServerAddrInfo: Socket mutex lock has been released.");
-
-            LogDebug("GetServerAddrInfo: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
-
-            LogDebug("GetServerAddrInfo: Socket mutex resources freed.");
-
-            LogDebug("GetServerAddrInfo: Done.");
 
             exit(ERROR);
         }
 
         if (addr == NULL) {
-            LogError("GetServerAddrInfo: Missing pointer to a sockaddr_in "
-                    "structure.");
-
-            LogDebug("GetServerAddrInfo: Attempting to release the socket "
-                    "mutex lock...");
-
             UnlockSocketMutex();
 
-            LogDebug("GetServerAddrInfo: Socket mutex lock has been released.");
-
-            LogDebug("GetServerAddrInfo: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
-
-            LogDebug("GetServerAddrInfo: Socket mutex resources freed.");
-
-            LogDebug("GetServerAddrInfo: Done.");
 
             exit(ERROR);
         }
@@ -385,48 +342,21 @@ void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
         int portnum = 0;
         int result = StringToLong(port, (long*) &portnum);
         if (result >= 0 && !IsUserPortValid(portnum)) {
-            LogError("GetServerAddrInfo: Port number must be in the range "
-                    "1024-49151 inclusive.");
-
-            LogDebug("GetServerAddrInfo: Attempting to release the socket "
-                    "mutex lock...");
 
             UnlockSocketMutex();
 
-            LogDebug("GetServerAddrInfo: Socket mutex lock has been released.");
-
-            LogDebug("GetServerAddrInfo: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
-
-            LogDebug("GetServerAddrInfo: Socket mutex resources freed.");
-
-            LogDebug("GetServerAddrInfo: Done.");
 
             exit(ERROR);
         }
 
         // Populate the fields of the sockaddr_in structure passed to us
         // with the proper values.
-
-        LogInfo("GetServerAddrInfo: Configuring server address and port...");
-
         addr->sin_family = AF_INET;
         addr->sin_port = htons(portnum);
         addr->sin_addr.s_addr = htons(INADDR_ANY);
-
-        LogInfo("GetServerAddrInfo: Server configured to listen on port %d.",
-                portnum);
-
-        LogDebug("GetServerAddrInfo: Attempting to release the socket "
-                "mutex lock...");
     }
     UnlockSocketMutex();
-
-    LogDebug("GetServerAddrInfo: The socket mutex lock has been released.");
-
-    LogDebug("GetServerAddrInfo: Done.");
 }
 
 /**
