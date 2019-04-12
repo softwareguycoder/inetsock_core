@@ -824,22 +824,9 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
 }
 
 void CloseSocket(int nSocket) {
-    LogDebug("In CloseSocket");
-
-    LogDebug("CloseSocket: nSocket = %d", nSocket);
-
-    LogInfo("CloseSocket: Checking for a valid socket file descriptor...");
-
     if (!IsSocketValid(nSocket)) {
-        LogError("CloseSocket: Valid socket file descriptor not passed.");
-
         return;	// just silently fail if the socket file descriptor passed is invalid
     }
-
-    LogInfo("CloseSocket: A valid socket file descriptor was passed.");
-
-    LogInfo("CloseSocket: Attempting to shut down the socket with"
-            " file descriptor %d...", nSocket);
 
     if (OK != shutdown(nSocket, SHUT_RD)) {
         /* This is not really an error, since shutting down a socket
@@ -849,23 +836,11 @@ void CloseSocket(int nSocket) {
 
         LogWarning("CloseSocket: Failed to shut down the socket with file "
                 "descriptor %d.", nSocket);
-    } else {
-        LogInfo("CloseSocket: Socket shut down successfully.");
     }
-
-    LogInfo("CloseSocket: Attempting to close the socket...");
 
     int retval = close(nSocket);
 
     if (retval < 0) {
-        LogError("CloseSocket: Failed to close the socket.");
-
-        LogDebug("CloseSocket: Done.");
-
         return;
     }
-
-    LogInfo("CloseSocket: Socket closed successfully.");
-
-    LogDebug("CloseSocket: Done.");
 }
