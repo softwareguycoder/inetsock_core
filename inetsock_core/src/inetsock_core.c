@@ -279,68 +279,27 @@ void SetSocketNonBlocking(int sockFd) {
 }
 
 int SetSocketReusable(int sockFd) {
-    LogDebug("In SetSocketReusable");
-
     int retval = ERROR;
 
-    LogInfo("SetSocketReusable: Checking whether a valid socket file "
-            "descriptor was passed...");
-
     if (!IsSocketValid(sockFd)) {
-        LogError("SetSocketReusable: The socket file descriptor has an "
-                "invalid value.");
-
-        LogDebug("SetSocketReusable: Done.");
 
         return retval;
     }
 
-    LogInfo("SetSocketReusable: A valid socket file descriptor has "
-            "been passed.");
-
-    LogDebug("SetSocketReusable: Attempting to obtain a lock on the "
-            "socket mutex...");
-
     // Set socket options to allow the socket to be reused.
     LockSocketMutex();
     {
-        LogDebug("SetSocketReusable: Socket mutex lock obtained, "
-                "or not using it.");
-
-        LogInfo("SetSocketReusable: Attempting to set the socket as "
-                "reusable...");
-
         retval = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) {
                     1 }, sizeof(int));
         if (retval < 0) {
             perror("setsockopt");
 
-            LogError("SetSocketReusable: Failed to mark socket as reusable.");
-
-            LogDebug("SetSocketReusable: Attempting to release the socket"
-                    " mutex lock...");
-
             UnlockSocketMutex();
-
-            LogDebug("SetSocketReusable: Socket mutex lock has been released.");
-
-            LogDebug("SetSocketReusable: Done.");
 
             return retval;
         }
-
-        LogInfo("SetSocketReusable: Socket configuration operation succeeded.");
-
-        LogDebug("SetSocketReusable: Attempting to release the socket "
-                "mutex lock...");
     }
     UnlockSocketMutex();
-
-    LogDebug("SetSocketReusable: Socket mutex lock released.");
-
-    LogDebug("SetSocketReusable: retval = %d", retval);
-
-    LogDebug("SetSocketReusable: Done.");
 
     return retval;
 }
