@@ -162,32 +162,12 @@ int IsHostnameValid(const char *hostnameOrIP, struct hostent **he) {
  * or closed.
  */
 int IsSocketValid(int sockFD) {
-    LogDebug("In IsSocketValid");
-
-    LogDebug("IsSocketValid: sockFD = %d", sockFD);
-
-    LogDebug("IsSocketValid: Checking whether the socket file descriptor "
-            "passed has a valid value...");
-
     /* Linux socket file descriptors are always positive, nonzero
      * integers when they represent a valid socket handle.
      */
     if (sockFD <= 0) {
-        LogError("IsSocketValid: Socket file descriptor is not a valid "
-                "value.");
-
-        LogDebug("IsSocketValid: Result = FALSE");
-
-        LogDebug("IsSocketValid: Done.");
-
         return FALSE;
     }
-
-    LogDebug("IsSocketValid: Socket file descriptor passed is valid.");
-
-    LogDebug("IsSocketValid: Result = TRUE");
-
-    LogDebug("IsSocketValid: Done.");
 
     return TRUE;
 }
