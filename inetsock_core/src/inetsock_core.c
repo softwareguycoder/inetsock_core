@@ -472,98 +472,45 @@ int ListenSocket(int sockFd) {
  */
 int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
 
-    LogDebug("In AcceptSocket");
-
     int nClientSocket = ERROR;
 
-    LogDebug("AcceptSocket: sockFd = %d", nSocket);
-
-    LogInfo("AcceptSocket: Checking for a valid socket file descriptor...");
-
     if (!IsSocketValid(nSocket)) {
-        LogError("AcceptSocket: Invalid file descriptor passed in "
-                "sockFd parameter.");
-
         errno = EBADF;
 
         perror("AcceptSocket");
 
-        LogDebug("AcceptSocket: Attempting to free socket mutex resources...");
-
         FreeSocketMutex();
-
-        LogDebug("AcceptSocket: Socket mutex resources freed.");
-
-        LogDebug("AcceptSocket: Done.");
 
         exit(ERROR);
     }
 
-    LogInfo("AcceptSocket: We were passed a valid socket file descriptor.");
-
-    LogInfo("AcceptSocket: Checking whether we are passed a valid sockaddr_in "
-            "reference...");
-
     if (pSockAddr == NULL) {
-        LogError(
-                "AcceptSocket: Null reference passed for sockaddr_in structure."
-                        "  Stopping.");
-
         errno = EINVAL;
 
         perror("AcceptSocket");
 
-        LogDebug("AcceptSocket: Attempting to free socket mutex resources...");
-
         FreeSocketMutex();
-
-        LogDebug("AcceptSocket: Socket mutex resources freed.");
-
-        LogDebug("AcceptSocket: Attempting to close the server endpoint...");
 
         CloseSocket(nSocket);
 
-        LogDebug("AcceptSocket: Server endpoint resources released.");
-
-        LogDebug("AcceptSocket: Done.");
-
         exit(ERROR);
     }
-
-    LogInfo("AcceptSocket: We have a valid reference to a sockaddr_in "
-            "structure.");
 
     // We now call the accept function.  This function holds us up
     // until a new client connection comes in, whereupon it returns
     // a file descriptor that represents the socket on our side that
     // is connected to the client.
-    LogInfo("AcceptSocket: Calling accept...");
-
     socklen_t client_address_len = sizeof(*pSockAddr);
 
     if ((nClientSocket = accept(nSocket, (struct sockaddr*) pSockAddr,
             &client_address_len)) < 0) {
-        LogError("AcceptSocket: Invalid value returned from accept.");
-
         if (EBADF != errno) {
             perror("AcceptSocket");
 
-            LogDebug("AcceptSocket: Attempting to free socket mutex "
-                    "resources...");
-
             FreeSocketMutex();
 
-            LogDebug("AcceptSocket: Socket mutex resources freed.");
-
-            LogDebug("AcceptSocket: Attempting to close the server "
-                    "endpoint...");
-
             CloseSocket(nSocket);
-
-            LogDebug("AcceptSocket: Server endpoint resources released.");
         }
-
-        LogDebug("AcceptSocket: Done.");
 
         /* If errno is EBADF, this is just from a thread being terminated
          * outside of this accept() call. In this case, merely return an
@@ -577,12 +524,6 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
             exit(ERROR);
         }
     }
-
-    LogInfo("AcceptSocket: New client connected.");
-
-    LogDebug("AcceptSocket: client_socket = %d", nClientSocket);
-
-    LogDebug("AcceptSocket: Done.");
 
     return nClientSocket;
 }
