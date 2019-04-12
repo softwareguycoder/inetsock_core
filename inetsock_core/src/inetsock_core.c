@@ -1,6 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-// socketapi.c: Definitions for the functions in the SocketDemoUtils.lib
-// shared library
+// inetsock_core.c: Implementations for the functions in this shared library
 
 #include "stdafx.h"
 #include "inetsock_core.h"
@@ -8,6 +7,11 @@
 #define CONNECT_OPERATION_FAILED "connect: Failed to contact server on '%s' and port %d.\n"
 
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
+
+///////////////////////////////////////////////////////////////////////////////
+// CreateSocketMutex function - Allocates operating system resources for the
+// socket mutex handle.
+//
 
 void CreateSocketMutex() {
     // If the socket mutex is already not NULL, assume it's
@@ -38,23 +42,17 @@ void CreateSocketMutex() {
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// FreeSocketMutex function - Releases operating system resources consumed
+// by the socket mutex.
+//
+
 void FreeSocketMutex() {
-    LogDebug("In FreeSocketMutex");
-
-    LogDebug(
-            "FreeSocketMutex: Checking whether g_pSocketMutex variable is NULL...");
-
     if (NULL == g_pSocketMutex) {
-        LogDebug(
-                "FreeSocketMutex: The g_pSocketMutex variable has a null reference.  Nothing to do.");
-
-        LogDebug("FreeSocketMutex: Done.");
-
+        // If we're here, assume that the socket mutex has already
+        // been freed; therefore, we have nothing to do.
         return;
     }
-
-    LogDebug(
-            "FreeSocketMutex: The g_pSocketMutex has a valid pthread_mutex_t reference.");
 
     /* Destroy the mutex handle for socket use.  We are utilizing the
      * bare-bones pthread_mutex_t  type and pthread_mutex_destroy system API,
@@ -63,26 +61,15 @@ void FreeSocketMutex() {
      * drag in the mutex library every single time I want to use this
      * inetsock_core library. */
 
-    LogInfo("FreeSocketMutex: Attempting to destroy the socket mutex...");
-
-    int retval = pthread_mutex_destroy(g_pSocketMutex);
-    if (retval != OK) {
+    int nResult = pthread_mutex_destroy(g_pSocketMutex);
+    if (nResult != OK) {
         perror("inetsock_core[FreeSocketMutex]");
 
         exit(ERROR);
     }
 
-    LogInfo("FreeSocketMutex: Mutex destroyed successfully.");
-
-    LogDebug("FreeSocketMutex: Attempting to release the resources associated "
-            "with the g_pSocketMutex handle...");
-
     free(g_pSocketMutex);
     g_pSocketMutex = NULL;
-
-    LogDebug("FreeSocketMutex: Resources freed.");
-
-    LogDebug("FreeSocketMutex: Done.");
 }
 
 void LockSocketMutex() {
