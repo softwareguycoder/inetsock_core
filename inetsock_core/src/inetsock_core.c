@@ -751,25 +751,11 @@ int Send(int nSocket, const char *pszMessage) {
  * forcibly terminates the calling program with the ERROR exit code.
  */
 int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
-    LogDebug("In ConnectSocket");
-
     int result = ERROR;
 
-    LogDebug("ConnectSocket: nSocket = %d", nSocket);
-
-    LogInfo("ConnectSocket: Checking for a valid socket file descriptor...");
-
     if (!IsSocketValid(nSocket)) {
-        LogError("ConnectSocket: Attempted to connect to remote host "
-                "with no endpoint.");
         exit(result);
     }
-
-    LogInfo("ConnectSocket: A valid socket file descriptor was passed.");
-
-    LogInfo("ConnectSocket: port = %d", nPort);
-
-    LogInfo("ConnectSocket: Checking whether the port number used is valid...");
 
     if (!IsUserPortValid(nPort)) {
         if (stderr != GetErrorLogFileHandle()) {
@@ -778,78 +764,36 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
                             "port number of the server.");
         }
 
-        LogError("ConnectSocket: Port number must be in the range "
-                "1024-49151 inclusive.");
-
-        LogInfo("ConnectSocket: Attempting to close the socket...");
-
         CloseSocket(nSocket);
 
-        LogInfo("ConnectSocket: Socket closed.");
-
-        LogInfo("ConnectSocket: Attempting to release the socket mutex...");
-
         FreeSocketMutex();
-
-        LogInfo("ConnectSocket: Resources for socket mutex have been freed.");
-
-        LogDebug("ConnectSocket: Done.");
 
         exit(result);
     }
 
-    LogInfo("ConnectSocket: The port number in use is valid.");
-
     struct hostent *he;						// Host entry
     struct sockaddr_in server_address; 		// Structure for the server
                                             // address and port
-
-    LogInfo("ConnectSocket: Attempting to resolve the hostname or "
-            "IP address '%s'...", pszHostName);
 
     // First, try to resolve the host name or IP address passed to us,
     // to ensure that the host can even be found on the network in the first
     // place.  Calling the function below also has the added bonus of
     // filling in a hostent structure for us if it succeeds.
     if (!IsHostnameValid(pszHostName, &he)) {
-        LogError("ConnectSocket: Cannot connect to server on '%s'.",
-                pszHostName);
-
         if (GetErrorLogFileHandle() != stderr) {
             fprintf(stderr, "ConnectSocket: Cannot connect to server on '%s'.",
                     pszHostName);
         }
 
-        LogInfo("ConnectSocket: Attempting to close the socket...");
-
         CloseSocket(nSocket);
 
-        LogInfo("ConnectSocket: Socket closed.");
-
-        LogInfo("ConnectSocket: Attempting to release the socket mutex...");
-
         FreeSocketMutex();
-
-        LogInfo("ConnectSocket: Resources for socket mutex have been freed.");
-
-        LogDebug("ConnectSocket: Done.");
 
         exit(result);
     }
 
-    LogInfo("ConnectSocket: The hostname or IP address passed could be "
-            "resolved.");
-
-    LogInfo("ConnectSocket: Obtaining a lock on the socket mutex...");
-
     LockSocketMutex();
     {
-        LogInfo("ConnectSocket: Lock on socket mutex obtained, or it was "
-                "not necessary.");
-
-        LogInfo("ConnectSocket: Attempting to contact the server at '%s' "
-                "on port %d...", pszHostName, nPort);
-
         /* copy the network address to sockaddr_in structure */
         memcpy(&server_address.sin_addr, he->h_addr_list[0], he->h_length);
         server_address.sin_family = AF_INET;
@@ -857,22 +801,9 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
 
         if ((result = connect(nSocket, (struct sockaddr*) &server_address,
                 sizeof(server_address))) < 0) {
-            LogError("ConnectSocket: The attempt to contact the "
-                    "server at '%s' on port %d failed.", pszHostName, nPort);
-
-            LogInfo("ConnectSocket: Releasing the lock on the socket mutex...");
-
             UnlockSocketMutex();
 
-            LogInfo("ConnectSocket: Socket mutex lock released.");
-
-            LogInfo("ConnectSocket: Releasing operating system resources "
-                    "consumed by the socket mutex...");
-
             FreeSocketMutex();
-
-            LogInfo("ConnectSocket: Operating system resources consumed "
-                    "by socket mutex freed.");
 
             CloseSocket(nSocket);
 
@@ -884,23 +815,10 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
 
             CloseLogFileHandles();
 
-            LogDebug("ConnectSocket: Done.");
-
             exit(ERROR);
         }
-
-        LogInfo("ConnectSocket: Connected to the server at '%s' on port %d.",
-                pszHostName, nPort);
-
-        LogInfo("ConnectSocket: Releasing the socket mutex...");
     }
     UnlockSocketMutex();
-
-    LogInfo("ConnectSocket: The socket mutex has been released.");
-
-    LogInfo("ConnectSocket: result = %d", result);
-
-    LogDebug("ConnectSocket: Done.");
 
     return result;
 }
