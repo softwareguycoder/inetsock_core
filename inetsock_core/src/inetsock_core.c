@@ -155,17 +155,17 @@ int IsHostnameValid(const char *hostnameOrIP, struct hostent **he) {
 
 /**
  * @brief Determines whether the socket file descriptor passed is valid.
- * @param sockFd An integer specifying the value of the file descriptor to be checked.
+ * @param nSocket An integer specifying the value of the file descriptor to be checked.
  * @returns TRUE if the descriptor is valid; FALSE otherwise.
  * @remarks "Valid" in this context simply means a positive integer.  This
  * function's job is not to tell you whether the socket is currently open
  * or closed.
  */
-int IsSocketValid(int sockFD) {
+int IsSocketValid(int nSocket) {
     /* Linux socket file descriptors are always positive, nonzero
      * integers when they represent a valid socket handle.
      */
-    if (sockFD <= 0) {
+    if (nSocket <= 0) {
         return FALSE;
     }
 
@@ -193,11 +193,11 @@ void free_buffer(void **ppBuffer) {
  *  the system.  Closes the socket file descriptor provided in order to
  *   free operating system resources.  Exits the program with the ERROR exit
  *   code.
- * @param sockFd Socket file descriptor to be closed after the error
+ * @param nSocket Socket file descriptor to be closed after the error
  *  has been reported.
  * @param msg Additional error text to be echoed to the console.
  **/
-void error_and_close(int sockFd, const char *msg) {
+void error_and_close(int nSocket, const char *msg) {
     if (msg == NULL || strlen(msg) == 0 || msg[0] == '\0') {
         perror(NULL);
         exit(ERROR);
@@ -207,8 +207,8 @@ void error_and_close(int sockFd, const char *msg) {
     LogError(msg);
     perror(NULL);
 
-    if (sockFd > 0) {
-        close(sockFd);
+    if (nSocket > 0) {
+        close(nSocket);
         fprintf(stderr, "Exiting with error code %d.", ERROR);
     }
 
@@ -239,12 +239,12 @@ void error(const char* msg) {
  *  the program to exit with the ERROR exit code.
  */
 int CreateSocket() {
-    int sockFd = -1;
+    int nSocket = -1;
 
     LockSocketMutex();
     {
-        sockFd = socket(AF_INET, SOCK_STREAM, 0);
-        if (!IsSocketValid(sockFd)) {
+        nSocket = socket(AF_INET, SOCK_STREAM, 0);
+        if (!IsSocketValid(nSocket)) {
             UnlockSocketMutex();
 
             FreeSocketMutex();
@@ -254,14 +254,14 @@ int CreateSocket() {
     }
     UnlockSocketMutex();
 
-    SetSocketReusable(sockFd);
+    SetSocketReusable(nSocket);
 
-    return sockFd;
+    return nSocket;
 }
 
-void SetSocketNonBlocking(int sockFd) {
+void SetSocketNonBlocking(int nSocket) {
 
-    if (!IsSocketValid(sockFd)) {
+    if (!IsSocketValid(nSocket)) {
         return;
     }
 
@@ -269,19 +269,19 @@ void SetSocketNonBlocking(int sockFd) {
 
     /* Set socket to non-blocking */
 
-    if ((flags = fcntl(sockFd, F_GETFL, 0)) < 0) {
+    if ((flags = fcntl(nSocket, F_GETFL, 0)) < 0) {
         return;
     }
 
-    if (fcntl(sockFd, F_SETFL, flags | O_NONBLOCK) < 0) {
+    if (fcntl(nSocket, F_SETFL, flags | O_NONBLOCK) < 0) {
         return;
     }
 }
 
-int SetSocketReusable(int sockFd) {
+int SetSocketReusable(int nSocket) {
     int retval = ERROR;
 
-    if (!IsSocketValid(sockFd)) {
+    if (!IsSocketValid(nSocket)) {
 
         return retval;
     }
@@ -289,7 +289,7 @@ int SetSocketReusable(int sockFd) {
     // Set socket options to allow the socket to be reused.
     LockSocketMutex();
     {
-        retval = setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, &(int ) {
+        retval = setsockopt(nSocket, SOL_SOCKET, SO_REUSEADDR, &(int ) {
                     1 }, sizeof(int));
         if (retval < 0) {
             perror("setsockopt");
@@ -362,16 +362,16 @@ void GetServerAddrInfo(const char *port, struct sockaddr_in *addr) {
 /**
  * @brief Binds a server socket to the address and port specified by the 'addr'
  * parameter.
- * @param sockFd Socket file descriptor that references the socket to be bound.
+ * @param nSocket Socket file descriptor that references the socket to be bound.
  * @param addr Pointer to a sockaddr_in structure that specifies the host
  * and port to which the socket endpoint should be bound.
  */
-int BindSocket(int sockFd, struct sockaddr_in *addr) {
+int BindSocket(int nSocket, struct sockaddr_in *addr) {
     int retval = ERROR;
 
     LockSocketMutex();
     {
-        if (!IsSocketValid(sockFd)) {
+        if (!IsSocketValid(nSocket)) {
             errno = EBADF;
 
             perror("BindSocket");
@@ -395,7 +395,7 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
             exit(ERROR);
         }
 
-        retval = bind(sockFd, (struct sockaddr*) addr, sizeof(*addr));
+        retval = bind(nSocket, (struct sockaddr*) addr, sizeof(*addr));
         if (retval < 0) {
             perror("BindSocket");
 
@@ -414,19 +414,19 @@ int BindSocket(int sockFd, struct sockaddr_in *addr) {
 /**
  * @brief Sets up a TCP or UDP server socket to listen on a port and IP address
  * to which it has been bound previously with the BindSocket function.
- * @params sockFd Socket file descriptor.
- * @returns ERROR if the socket file descriptor passed in sockFd
+ * @params nSocket Socket file descriptor.
+ * @returns ERROR if the socket file descriptor passed in nSocket
  * does not represent a valid, open socket and sets errno to EBADF.  Otherwise,
  * returns the result of calling listen on the socket file descriptor
  * passed with a backlog size of BACKLOG_SIZE (128 by default).  Zero is
  * returned if the operation was successful.
  */
-int ListenSocket(int sockFd) {
+int ListenSocket(int nSocket) {
     int retval = ERROR;
 
     LockSocketMutex();
     {
-        if (!IsSocketValid(sockFd)) {
+        if (!IsSocketValid(nSocket)) {
             errno = EBADF;
 
             perror("ListenSocket");
@@ -438,7 +438,7 @@ int ListenSocket(int sockFd) {
             exit(ERROR);
         }
 
-        retval = listen(sockFd, BACKLOG_SIZE);
+        retval = listen(nSocket, BACKLOG_SIZE);
 
         if (retval < 0) {
             perror("ListenSocket");
@@ -458,7 +458,7 @@ int ListenSocket(int sockFd) {
 /**
  * @brief Accepts an incoming connection on a socket and returns information
  * about the remote host.
- * @param sockFd Socket file descriptor on which to accept new incoming
+ * @param nSocket Socket file descriptor on which to accept new incoming
  * connections.
  * @param addr Reference to a sockaddr_in structure that receives information
  * aboutthe IP address of the remote endpoint.
@@ -466,7 +466,7 @@ int ListenSocket(int sockFd) {
  * incoming connection; or a negative number indicating that errno should be
  * read for the error description.
  * @remarks Returns ERROR if any of the following are true: (a) sets errno
- * to EBADF if sockFd is an invalid value (nonpositive) or (b) sets errno to
+ * to EBADF if nSocket is an invalid value (nonpositive) or (b) sets errno to
  * EINVAL if addr is NULL. This function blocks the calling thread until an
  * incoming connection has been  established.
  */
@@ -530,7 +530,7 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
 
 /**
  * @brief Reads a line of data, terminated by the '\n' character, from a socket.
- * @param sockFd Socket file descriptor from which to receive data.
+ * @param nSocket Socket file descriptor from which to receive data.
  * @param buf Reference to an address at which to allocate storage
  * for the received data.
  * @returns Total bytes read for the current line or a negative number
@@ -542,7 +542,7 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pSockAddr) {
  * storage referenced by *buf and allocate brand-new storage for the incoming
  * line.
  */
-int Receive(int sockFd, char **ppszReceiveBuffer) {
+int Receive(int nSocket, char **ppszReceiveBuffer) {
     int nTotalBytesRead = 0;
 
     // Can't do anything if the receive buffer's memory address is not
@@ -551,7 +551,7 @@ int Receive(int sockFd, char **ppszReceiveBuffer) {
         return 0;
     }
 
-    if (!IsSocketValid(sockFd)) {
+    if (!IsSocketValid(nSocket)) {
         // If an invalid socket file descriptor is passed, we don't care.
         // Could be a socket that is polled even after it's already been
         // closed and its descriptor invalidated.  Just finish and return
@@ -575,7 +575,7 @@ int Receive(int sockFd, char **ppszReceiveBuffer) {
 
     while (1) {
         char ch;		// receive one char at a time until a newline is found
-        bytes_read = recv(sockFd, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
+        bytes_read = recv(nSocket, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
         if (bytes_read < 0) {
             if (errno == EBADF || errno == EWOULDBLOCK) {
                 sleep(1); /* allow any other threads receiving to run */
@@ -741,25 +741,25 @@ int Send(int nSocket, const char *pszMessage) {
 /**
  * @brief Connects a socket to a remote host whose hostname or IP address and
  * port number is specified.
- * @param sockFd Socket file descriptor representing a socket that is not yet
+ * @param nSocket Socket file descriptor representing a socket that is not yet
  * connected to a remote endpoint.
- * @param hostnameOrIp String indicating the human-readable (in DNS) hostname
+ * @param pszHostName String indicating the human-readable (in DNS) hostname
  * or the IP address of the remote host.
- * @param port Port number that the service on the remote host is listening on.
+ * @param nPort Port number that the service on the remote host is listening on.
  * @returns Zero if successful; ERROR if an error occurred.  The errno
  * value should be examined if this happens.  In other cases, this function
  * forcibly terminates the calling program with the ERROR exit code.
  */
-int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
+int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
     LogDebug("In ConnectSocket");
 
     int result = ERROR;
 
-    LogDebug("ConnectSocket: sockFd = %d", sockFd);
+    LogDebug("ConnectSocket: nSocket = %d", nSocket);
 
     LogInfo("ConnectSocket: Checking for a valid socket file descriptor...");
 
-    if (!IsSocketValid(sockFd)) {
+    if (!IsSocketValid(nSocket)) {
         LogError("ConnectSocket: Attempted to connect to remote host "
                 "with no endpoint.");
         exit(result);
@@ -767,11 +767,11 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 
     LogInfo("ConnectSocket: A valid socket file descriptor was passed.");
 
-    LogInfo("ConnectSocket: port = %d", port);
+    LogInfo("ConnectSocket: port = %d", nPort);
 
     LogInfo("ConnectSocket: Checking whether the port number used is valid...");
 
-    if (!IsUserPortValid(port)) {
+    if (!IsUserPortValid(nPort)) {
         if (stderr != GetErrorLogFileHandle()) {
             fprintf(stderr,
                     "ConnectSocket: An invalid value is being used for the "
@@ -783,7 +783,7 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
 
         LogInfo("ConnectSocket: Attempting to close the socket...");
 
-        CloseSocket(sockFd);
+        CloseSocket(nSocket);
 
         LogInfo("ConnectSocket: Socket closed.");
 
@@ -805,24 +805,24 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
                                             // address and port
 
     LogInfo("ConnectSocket: Attempting to resolve the hostname or "
-            "IP address '%s'...", hostnameOrIp);
+            "IP address '%s'...", pszHostName);
 
     // First, try to resolve the host name or IP address passed to us,
     // to ensure that the host can even be found on the network in the first
     // place.  Calling the function below also has the added bonus of
     // filling in a hostent structure for us if it succeeds.
-    if (!IsHostnameValid(hostnameOrIp, &he)) {
+    if (!IsHostnameValid(pszHostName, &he)) {
         LogError("ConnectSocket: Cannot connect to server on '%s'.",
-                hostnameOrIp);
+                pszHostName);
 
         if (GetErrorLogFileHandle() != stderr) {
             fprintf(stderr, "ConnectSocket: Cannot connect to server on '%s'.",
-                    hostnameOrIp);
+                    pszHostName);
         }
 
         LogInfo("ConnectSocket: Attempting to close the socket...");
 
-        CloseSocket(sockFd);
+        CloseSocket(nSocket);
 
         LogInfo("ConnectSocket: Socket closed.");
 
@@ -848,17 +848,17 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
                 "not necessary.");
 
         LogInfo("ConnectSocket: Attempting to contact the server at '%s' "
-                "on port %d...", hostnameOrIp, port);
+                "on port %d...", pszHostName, nPort);
 
         /* copy the network address to sockaddr_in structure */
         memcpy(&server_address.sin_addr, he->h_addr_list[0], he->h_length);
         server_address.sin_family = AF_INET;
-        server_address.sin_port = htons(port);
+        server_address.sin_port = htons(nPort);
 
-        if ((result = connect(sockFd, (struct sockaddr*) &server_address,
+        if ((result = connect(nSocket, (struct sockaddr*) &server_address,
                 sizeof(server_address))) < 0) {
             LogError("ConnectSocket: The attempt to contact the "
-                    "server at '%s' on port %d failed.", hostnameOrIp, port);
+                    "server at '%s' on port %d failed.", pszHostName, nPort);
 
             LogInfo("ConnectSocket: Releasing the lock on the socket mutex...");
 
@@ -874,12 +874,12 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
             LogInfo("ConnectSocket: Operating system resources consumed "
                     "by socket mutex freed.");
 
-            CloseSocket(sockFd);
+            CloseSocket(nSocket);
 
             /* If we are logging to a file and not the screen, print a message on the
              * screen for an interactive user that the connect operation failed. */
             if (GetLogFileHandle() != stdout) {
-                fprintf(stdout, CONNECT_OPERATION_FAILED, hostnameOrIp, port);
+                fprintf(stdout, CONNECT_OPERATION_FAILED, pszHostName, nPort);
             }
 
             CloseLogFileHandles();
@@ -890,7 +890,7 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
         }
 
         LogInfo("ConnectSocket: Connected to the server at '%s' on port %d.",
-                hostnameOrIp, port);
+                pszHostName, nPort);
 
         LogInfo("ConnectSocket: Releasing the socket mutex...");
     }
@@ -905,14 +905,14 @@ int ConnectSocket(int sockFd, const char *hostnameOrIp, int port) {
     return result;
 }
 
-void CloseSocket(int sockFd) {
+void CloseSocket(int nSocket) {
     LogDebug("In CloseSocket");
 
-    LogDebug("CloseSocket: sockFd = %d", sockFd);
+    LogDebug("CloseSocket: nSocket = %d", nSocket);
 
     LogInfo("CloseSocket: Checking for a valid socket file descriptor...");
 
-    if (!IsSocketValid(sockFd)) {
+    if (!IsSocketValid(nSocket)) {
         LogError("CloseSocket: Valid socket file descriptor not passed.");
 
         return;	// just silently fail if the socket file descriptor passed is invalid
@@ -921,23 +921,23 @@ void CloseSocket(int sockFd) {
     LogInfo("CloseSocket: A valid socket file descriptor was passed.");
 
     LogInfo("CloseSocket: Attempting to shut down the socket with"
-            " file descriptor %d...", sockFd);
+            " file descriptor %d...", nSocket);
 
-    if (OK != shutdown(sockFd, SHUT_RD)) {
+    if (OK != shutdown(nSocket, SHUT_RD)) {
         /* This is not really an error, since shutting down a socket
          * really just means disabling reads/writes on an open socket,
          * not closing it.  Who cares if we cannot perform this
          * operation? */
 
         LogWarning("CloseSocket: Failed to shut down the socket with file "
-                "descriptor %d.", sockFd);
+                "descriptor %d.", nSocket);
     } else {
         LogInfo("CloseSocket: Socket shut down successfully.");
     }
 
     LogInfo("CloseSocket: Attempting to close the socket...");
 
-    int retval = close(sockFd);
+    int retval = close(nSocket);
 
     if (retval < 0) {
         LogError("CloseSocket: Failed to close the socket.");
