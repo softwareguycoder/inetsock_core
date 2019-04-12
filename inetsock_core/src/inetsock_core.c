@@ -712,72 +712,28 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
     return nTotalBytesSent;
 }
 
-int Send(int sockFd, const char *buf) {
-    LogDebug("In Send");
-
-    LogInfo("Send: Checking whether we have been passed a valid socket file "
-            "descriptor...");
-
-    LogDebug("Send: sockFd = %d", sockFd);
-
-    if (!IsSocketValid(sockFd)) {
-        LogError("Send: Invalid socket file descriptor passed.");
-
+int Send(int nSocket, const char *pszMessage) {
+    if (!IsSocketValid(nSocket)) {
         errno = EBADF;
-
-        LogDebug("Send: errno set to %d", errno);
-
-        LogDebug("Send: Done.");
 
         exit(ERROR);
     }
 
-    LogInfo("Send: The socket file descriptor passed is valid.");
-
-    LogInfo("Send: Checking whether text was passed in for sending...");
-
-    if (IsNullOrWhiteSpace(buf)) {
-        LogError("Send: Nothing was passed to us to send.  Stopping.");
-
-        LogDebug("Send: Returning zero.");
-
-        LogDebug("Send: Done.");
-
+    if (IsNullOrWhiteSpace(pszMessage)) {
         // Nothing to send
         return 0;
     }
+    int nMessageLength = strlen(pszMessage);
 
-    LogInfo("Send: We were supplied with text for sending.");
-
-    int buf_len = strlen(buf);
-
-    LogInfo("Send: buf_len = %d", buf_len);
-
-    LogInfo("Send: Now attempting the send operation...");
-
-    int bytes_sent = SendAll(sockFd, buf, buf_len);
-
-    LogInfo("Send: Sent %d bytes.", bytes_sent);
+    int bytes_sent = SendAll(nSocket, pszMessage, nMessageLength);
 
     if (bytes_sent < 0) {
-        LogError("Send: Failed to send data.");
-
-        error_and_close(sockFd, "Send: Failed to send data.");
-
-        LogDebug("Send: Attempting to free socket mutex resources...");
+        error_and_close(nSocket, "Send: Failed to send data.");
 
         FreeSocketMutex();
 
-        LogDebug("Send: Socket mutex resources freed.");
-
-        LogDebug("Send: Done.");
-
         exit(ERROR);
     }
-
-    LogInfo("Send: %d B sent.", bytes_sent);
-
-    LogDebug("Send: Done.");
 
     return bytes_sent;
 }
