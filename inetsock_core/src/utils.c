@@ -9,12 +9,12 @@
 /**
  * \brief Checks the integer value supplied to ensure it's a valid user port
  * number and not reserved for a different service.
- * \param port Variable containing the value to be validated.
+ * \param nPort Value to be validated.
  * \returns Zero if the 'port' parameter is not in the range [1024, 49151]
  * (inclusive); nonzero otherwise.
  */
-int isUserPortValid(int port)
+int IsUserPortValid(int nPort)
 {
-    return port >= 1024 && port < 49151;
+    return nPort >= 1024 && nPort < 49151;
 }
 

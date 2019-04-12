@@ -12,7 +12,7 @@
  * \returns Zero if the 'port' parameter is not in the range [1024, 49151]
  * (inclusive); nonzero otherwise.
  */
-int isUserPortValid(int port);
+int IsUserPortValid(int port);
 
 
 #endif /* __UTILS_H__ */
