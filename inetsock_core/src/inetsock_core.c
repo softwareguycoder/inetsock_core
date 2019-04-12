@@ -239,50 +239,22 @@ void error(const char* msg) {
  *  the program to exit with the ERROR exit code.
  */
 int CreateSocket() {
-    LogDebug("In CreateSocket");
-
     int sockFd = -1;
-
-    LogInfo("CreateSocket: Attempting to obtain a lock on the socket mutex...");
 
     LockSocketMutex();
     {
-        LogInfo("CreateSocket: Socket mutex lock obtained, or we are "
-                "not using it.");
-
-        LogInfo("CreateSocket: Attempting to create new TCP endpoint...");
-
         sockFd = socket(AF_INET, SOCK_STREAM, 0);
         if (!IsSocketValid(sockFd)) {
-            LogError("CreateSocket: Could not create new TCP endpoint.");
-
             UnlockSocketMutex();
 
             FreeSocketMutex();
 
-            LogDebug("CreateSocket: Done.");
-
             exit(ERROR);
         }
-
-        LogDebug(
-                "CreateSocket: Attempting to release the socket mutex lock...");
     }
     UnlockSocketMutex();
 
-    LogDebug("CreateSocket: Socket mutex lock released.");
-
-    LogInfo("CreateSocket: Endpoint created successfully.");
-
-    LogInfo("CreateSocket: Attempting to mark endpoint as reusable...");
-
     SetSocketReusable(sockFd);
-
-    LogInfo("CreateSocket: Endpoint configured to be reusable.");
-
-    LogInfo("CreateSocket: The new socket file descriptor is %d.", sockFd);
-
-    LogDebug("CreateSocket: Done.");
 
     return sockFd;
 }
