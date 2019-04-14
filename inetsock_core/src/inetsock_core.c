@@ -178,22 +178,6 @@ int IsSocketValid(int nSocket) {
 }
 
 /**
- * @brief Frees the memory at the address specified.
- * @param ppBuffer Address of a pointer which points to memory
- * allocated with the '*alloc' functions (malloc, calloc, realloc).
- * @remarks Remember to cast the address of the pointer being passed
- * to this function to void**
- */
-void FreeBuffer(void **ppBuffer) {
-    if (ppBuffer == NULL || *ppBuffer == NULL) {
-        return;     // Nothing to do since there is no address referenced
-    }
-
-    free(*ppBuffer);
-    *ppBuffer = NULL;
-}
-
-/**
  * @brief Reports the error message specified as well as the error from
  *  the system.  Closes the socket file descriptor provided in order to
  *   free operating system resources.  Exits the program with the ERROR exit
