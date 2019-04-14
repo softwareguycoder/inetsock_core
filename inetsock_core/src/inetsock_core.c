@@ -9,6 +9,18 @@
 
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
+/**
+ * @brief Checks the integer value supplied to ensure it's a valid user port
+ * number and not reserved for a different service.
+ * @param nPort Value to be validated.
+ * @returns Zero if the 'port' parameter is not in the range [1024, 49151]
+ * (inclusive); nonzero otherwise.
+ */
+int IsUserPortValid(int nPort)
+{
+    return nPort >= 1024 && nPort < 49151;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // CreateSocketMutex function - Allocates operating system resources for the
 // socket mutex handle.

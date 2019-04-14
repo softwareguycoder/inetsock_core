@@ -132,6 +132,15 @@ void HandleError(const char* pszErrorMessage);
 int IsHostnameValid(const char *pszHostName, struct hostent **ppHostEntry);
 
 /**
+ * \brief Checks the integer value supplied to ensure it's a valid user port
+ * number and not reserved for a different service.
+ * \param port Variable containing the value to be validated.
+ * \returns Zero if the 'port' parameter is not in the range [1024, 49151]
+ * (inclusive); nonzero otherwise.
+ */
+int IsUserPortValid(int port);
+
+/**
  * @brief Determines whether the socket file descriptor passed is valid.
  * @param nSocket An integer specifying the value of the file descriptor to be
  * checked.
