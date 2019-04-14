@@ -186,7 +186,7 @@ int IsSocketValid(int nSocket) {
  *  has been reported.
  * @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error_and_close(int nSocket, const char *pszErrorMessage) {
+void ErrorAndClose(int nSocket, const char *pszErrorMessage) {
     if (IsNullOrWhiteSpace(pszErrorMessage)) {
         perror(NULL);
         exit(ERROR);
@@ -210,7 +210,7 @@ void error_and_close(int nSocket, const char *pszErrorMessage) {
  *  the system. Exits the program with the ERROR exit code.
  * @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error(const char* pszErrorMessage) {
+void HandleError(const char* pszErrorMessage) {
     if (IsNullOrWhiteSpace(pszErrorMessage)) {
         return;
     }
@@ -706,7 +706,7 @@ int Send(int nSocket, const char *pszMessage) {
     int bytes_sent = SendAll(nSocket, pszMessage, nMessageLength);
 
     if (bytes_sent < 0) {
-        error_and_close(nSocket, "Send: Failed to send data.");
+        ErrorAndClose(nSocket, "Send: Failed to send data.");
 
         FreeSocketMutex();
 

@@ -60,14 +60,14 @@ int IsSocketValid(int nSocket);
  *  has been reported.
  *  @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error_and_close(int nSocket, const char *pszErrorMessage);
+void ErrorAndClose(int nSocket, const char *pszErrorMessage);
 
 /**
  *  @brief Reports the error message specified as well as the error from
  *  the system. Exits the program with the ERROR exit code.
  *  @param pszErrorMessage Additional error text to be echoed to the console.
  **/
-void error(const char* pszErrorMessage);
+void HandleError(const char* pszErrorMessage);
 
 /**
  *  @brief Creates a new socket endpoint for communicating with a remote
