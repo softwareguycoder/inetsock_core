@@ -37,9 +37,10 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo);
 int BindSocket(int nSocket, struct sockaddr_in *pAddrInfo);
 
 /**
- * @brief Attempts to release operating system resources that are allocated to the
- * specified socket.
- * @param nSocket Socket file descriptor referring to the socket that is to be closed.
+ * @brief Attempts to release operating system resources that are allocated to
+ * the specified socket.
+ * @param nSocket Socket file descriptor referring to the socket that is to be
+ * closed.
  */
 void CloseSocket(int nSocket);
 
@@ -56,7 +57,6 @@ void CloseSocket(int nSocket);
  * forcibly terminates the calling program with the ERROR exit code.
  */
 int ConnectSocket(int nSocket, const char *hostnameOrIp, int port);
-
 
 /**
  *  @brief Creates a new socket endpoint for communicating with a remote
@@ -99,7 +99,8 @@ void FreeSocketMutex();
  * @brief Populates the port and address information for a server
  * so the server knows the hostname/IP address and port of the computer
  * it is listening on.
- * @param pszPort String containing the port number to listen on.  Must be numeric.
+ * @param pszPort String containing the port number to listen on.  Must be
+ * numeric.
  * @param pAddrInfo Address of storage that will receive a filled-in sockaddr_in
  * structure that defines the server endpoint.
  * @remarks If invalid input is supplied or an error occurs, reports
@@ -121,8 +122,8 @@ void HandleError(const char* pszErrorMessage);
  * @param pszHostName The hostname or IP address of the remote computer
  * that is to be resolved with DNS.
  * @param ppHostEntry Address of a storage location that is to be filled with a
- *  hostent structure upon successful resolution of the hostname or
- *  IP address provided.
+ * hostent structure upon successful resolution of the hostname or
+ * IP address provided.
  * @returns Zero if resolution has failed; nonzero otherwise.
  * @remarks If this function returns nonzero, then the value of '*he'
  *  will be the address of a storage location containing a hostent
@@ -132,7 +133,8 @@ int IsHostnameValid(const char *pszHostName, struct hostent **ppHostEntry);
 
 /**
  * @brief Determines whether the socket file descriptor passed is valid.
- * @param nSocket An integer specifying the value of the file descriptor to be checked.
+ * @param nSocket An integer specifying the value of the file descriptor to be
+ * checked.
  * @returns TRUE if the descriptor is valid; FALSE otherwise.
  * @remarks "Valid" in this context simply means a positive integer.  This
  * function's job is not to tell you whether the socket is currently open
@@ -144,10 +146,12 @@ int IsSocketValid(int nSocket);
  * @brief Sets up a TCP or UDP server socket to listen on a port and IP address
  * to which it has been bound previously with the SocketDemoUtils_bind function.
  * @param nSocket Socket file descriptor.
- * @returns ERROR if the socket file descriptor passed in nSocket does not represent
- * a valid, open socket and sets errno to EBADF.  Otherwise, returns the result of
+ * @returns ERROR if the socket file descriptor passed in nSocket does not
+ * represent a valid, open socket and sets errno to EBADF.  Otherwise, returns
+ *  the result of
  * calling listen on the socket file descriptor passed with a backlog size of
- * BACKLOG_SIZE (128 by default).  Zero is returned if the operation was successful.
+ * BACKLOG_SIZE (128 by default).  Zero is returned if the operation was
+ * successful.
  */
 int ListenSocket(int nSocket);
 
@@ -168,23 +172,30 @@ int ListenSocket(int nSocket);
 int Receive(int nSocket, char **ppszReceiveBuffer);
 
 /**
- *	@brief Sends data to the endpoint on the other end of the connection referenced
- *	by the connected socket.
- *	@param nSocket Socket file descriptor.  Must be a descriptor for a valid socket that
- *	is currently connected to a remote host.
- *	@param pszMessage Address of a character array containing the bytes to be sent.
+ *	@brief Sends data to the endpoint on the other end of the connection
+ *	referenced by the specified connected socket.
+ *	@param nSocket Socket file descriptor.  Must be a descriptor for a valid
+ *	socket that is currently connected to a remote host.
+ *	@param pszMessage Address of a character array containing the bytes to be
+ *	sent.
  *	@returns ERROR if the operation failed; number of bytes sent otherwise.
  *	If the ERROR value is returned, errno should be examined to determine the
  *  cause of the error.
  */
 int Send(int nSocket, const char *pszMessage);
 
+/**
+ * @brief Sets preferences on the socket specified to make it non-blocking.
+ * @param nSocket Socket file descriptor to perform the operation on.
+ */
 void SetSocketNonBlocking(int nSocket);
 
 /**
  * @brief Makes the socket passed to it reusable by setting socket options.
- * @param nSocket Positive integer specifying the Linux file descriptor of the socket to mark.
- * @returns Zero if the operation succeeded; ERROR otherwise.  errno contains the error.
+ * @param nSocket Positive integer specifying the Linux file descriptor of the
+ * socket to mark.
+ * @returns Zero if the operation succeeded; ERROR otherwise.  errno contains
+ * the error.
  */
 int SetSocketReusable(int nSocket);
 
