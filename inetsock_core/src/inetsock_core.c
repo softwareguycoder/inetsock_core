@@ -16,7 +16,7 @@ pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
  * @returns Zero if the 'port' parameter is not in the range [1024, 49151]
  * (inclusive); nonzero otherwise.
  */
-int IsUserPortValid(int nPort)
+int IsUserPortNumberValid(int nPort)
 {
     return nPort >= 1024 && nPort < 49151;
 }
@@ -338,7 +338,7 @@ void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo) {
         // validate that it is in the proper range
         int portnum = 0;
         int result = StringToLong(pszPort, (long*) &portnum);
-        if (result >= 0 && !IsUserPortValid(portnum)) {
+        if (result >= 0 && !IsUserPortNumberValid(portnum)) {
 
             UnlockSocketMutex();
 
@@ -747,7 +747,7 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
         exit(result);
     }
 
-    if (!IsUserPortValid(nPort)) {
+    if (!IsUserPortNumberValid(nPort)) {
         if (stderr != GetErrorLogFileHandle()) {
             fprintf(stderr,
                     "ConnectSocket: An invalid value is being used for the "

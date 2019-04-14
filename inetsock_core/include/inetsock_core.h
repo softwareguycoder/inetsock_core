@@ -138,7 +138,7 @@ int IsHostnameValid(const char *pszHostName, struct hostent **ppHostEntry);
  * \returns Zero if the 'port' parameter is not in the range [1024, 49151]
  * (inclusive); nonzero otherwise.
  */
-int IsUserPortValid(int port);
+int IsUserPortNumberValid(int port);
 
 /**
  * @brief Determines whether the socket file descriptor passed is valid.
