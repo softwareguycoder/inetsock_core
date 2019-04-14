@@ -184,7 +184,7 @@ int IsSocketValid(int nSocket) {
  * @remarks Remember to cast the address of the pointer being passed
  * to this function to void**
  */
-void free_buffer(void **ppBuffer) {
+void FreeBuffer(void **ppBuffer) {
     if (ppBuffer == NULL || *ppBuffer == NULL) {
         return;     // Nothing to do since there is no address referenced
     }
@@ -624,7 +624,7 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
     } else {
         // Error occurred or the other end terminated the connection.
 
-        free_buffer((void**) ppszReceiveBuffer);
+        FreeBuffer((void**) ppszReceiveBuffer);
 
         return 0;
     }

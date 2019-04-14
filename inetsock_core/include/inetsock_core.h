@@ -58,7 +58,7 @@ int IsSocketValid(int nSocket);
  * @remarks Remember to cast the address of the pointer being passed
  * to this function to void**
  */
-void free_buffer(void **ppBuffer);
+void FreeBuffer(void **ppBuffer);
 
 /**
  *  @brief Reports the error message specified as well as the error from
