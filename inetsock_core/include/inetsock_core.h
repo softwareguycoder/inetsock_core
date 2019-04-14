@@ -2,7 +2,6 @@
 #define __INETSOCK_CORE_H__
 
 #include "stdafx.h"
-#include "utils.h"
 
 #include <../../common_core/common_core/include/common_core.h>
 
