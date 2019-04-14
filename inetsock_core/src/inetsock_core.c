@@ -14,6 +14,10 @@ pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 // socket mutex handle.
 //
 
+// We are not using the corresponding CreateMutex function from the
+// mutex_core library since the concern is that not every client of THIS library
+// will necessarily want to do all socket communications in a critical section;
+// therefore we want to not add unnecessary dependencies.
 void CreateSocketMutex() {
     // If the socket mutex is already not NULL, assume it's
     // already been created; therefore, we have nothing to do here.
