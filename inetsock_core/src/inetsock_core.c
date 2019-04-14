@@ -341,8 +341,8 @@ void FreeSocketMutex() {
 ///////////////////////////////////////////////////////////////////////////////
 // GetServerAddrInfo function
 
-void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo) {
-    if (IsNullOrWhiteSpace(pszPort)) {
+void GetServerAddrInfo(int nPort, struct sockaddr_in *pAddrInfo) {
+    if (!IsUserPortNumberValid(nPort)) {
         FreeSocketMutex();
 
         exit(ERROR);
@@ -358,23 +358,10 @@ void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo) {
             exit(ERROR);
         }
 
-        // Get the port number from its string representation and then
-        // validate that it is in the proper range
-        int portnum = 0;
-        int result = StringToLong(pszPort, (long*) &portnum);
-        if (result >= 0 && !IsUserPortNumberValid(portnum)) {
-
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-
         // Populate the fields of the sockaddr_in structure passed to us
         // with the proper values.
         pAddrInfo->sin_family = AF_INET;
-        pAddrInfo->sin_port = htons(portnum);
+        pAddrInfo->sin_port = htons(nPort);
         pAddrInfo->sin_addr.s_addr = htons(INADDR_ANY);
     }
     UnlockSocketMutex();

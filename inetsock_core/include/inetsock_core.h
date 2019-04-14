@@ -106,7 +106,7 @@ void FreeSocketMutex();
  * these problems to the console and forces the program to die with the
  * ERROR exit code.
  */
-void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo);
+void GetServerAddrInfo(int nPort, struct sockaddr_in *pAddrInfo);
 
 /**
  *  @brief Reports the error message specified as well as the error from
