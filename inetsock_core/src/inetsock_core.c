@@ -4,465 +4,16 @@
 #include "stdafx.h"
 #include "inetsock_core.h"
 
+#include "socket_mutex.h"
+
 #define CONNECT_OPERATION_FAILED "connect: Failed to contact server on " \
                                  "'%s' and port %d.\n"
 
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
-/**
- * @brief Checks the integer value supplied to ensure it's a valid user port
- * number and not reserved for a different service.
- * @param nPort Value to be validated.
- * @returns Zero if the 'port' parameter is not in the range [1024, 49151]
- * (inclusive); nonzero otherwise.
- */
-int IsUserPortNumberValid(int nPort)
-{
-    return nPort >= 1024 && nPort < 49151;
-}
-
 ///////////////////////////////////////////////////////////////////////////////
-// CreateSocketMutex function - Allocates operating system resources for the
-// socket mutex handle.
-//
+// AcceptSocket function
 
-// We are not using the corresponding CreateMutex function from the
-// mutex_core library since the concern is that not every client of THIS library
-// will necessarily want to do all socket communications in a critical section;
-// therefore we want to not add unnecessary dependencies.
-void CreateSocketMutex() {
-    // If the socket mutex is already not NULL, assume it's
-    // already been created; therefore, we have nothing to do here.
-    if (NULL != g_pSocketMutex) {
-        return;
-    }
-
-    g_pSocketMutex = (pthread_mutex_t*) malloc(1 * sizeof(pthread_mutex_t));
-    if (g_pSocketMutex == NULL) {
-        perror("LockSocketMutex");
-
-        exit(ERROR);
-    }
-
-    // Call pthread_mutex_init.  This version of CreateMutex just passes a
-    // mutex handle for the function to initialize with NULL for the attributes.
-    // We are using this instead of calling on mutex_core to avoid
-    // extraneous dependencies.
-    int nResult = pthread_mutex_init(g_pSocketMutex, NULL);
-    if (OK != nResult) {
-        // Cleanup the mutex handle if necessary
-        if (NULL != g_pSocketMutex) {
-            FreeSocketMutex();
-        }
-        perror("LockSocketMutex");
-        exit(ERROR);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// FreeSocketMutex function - Releases operating system resources consumed
-// by the socket mutex.
-//
-
-void FreeSocketMutex() {
-    if (NULL == g_pSocketMutex) {
-        // If we're here, assume that the socket mutex has already
-        // been freed; therefore, we have nothing to do.
-        return;
-    }
-
-    /* Destroy the mutex handle for socket use.  We are utilizing the
-     * bare-bones pthread_mutex_t  type and pthread_mutex_destroy system API,
-     * rather than the functions exported by the mutex_core library.  This is
-     * to avoid an unncessary dependency.  That is, I do not want to have to
-     * drag in the mutex library every single time I want to use this
-     * inetsock_core library. */
-
-    int nResult = pthread_mutex_destroy(g_pSocketMutex);
-    if (nResult != OK) {
-        perror("inetsock_core[FreeSocketMutex]");
-
-        exit(ERROR);
-    }
-
-    free(g_pSocketMutex);
-    g_pSocketMutex = NULL;
-}
-
-void LockSocketMutex() {
-    int nResult = ERROR;
-
-    if (NULL == g_pSocketMutex) {
-        // just do nothing. (g_pSocketMutex will have the value of NULL in
-        // the case that the caller of this library did not call
-        // CreateSocketMutex in their main function)
-
-        return; /* if we are here then we are not using mutexes at all */
-    }
-
-    nResult = pthread_mutex_lock(g_pSocketMutex);
-    if (OK != nResult) {
-        perror("LockSocketMutex");
-        exit(ERROR);
-    }
-
-    return; 	// Succeeded
-}
-
-void UnlockSocketMutex() {
-    if (NULL == g_pSocketMutex) {
-        // If the g_pSocketMutex handle is NULL, then assume that the caller of
-        // this library is writing a single-threaded application which will not
-        // need mutexes for its socket communications. Therefore, in this case,
-        // just do nothing. (g_pSocketMutex will have the value of NULL
-        // in the case that the caller of this library did not call
-        // CreateSocketMutex in their main function)
-
-        return;
-    }
-
-    int nResult = pthread_mutex_unlock(g_pSocketMutex);
-    if (OK != nResult) {
-        perror("UnlockSocketMutex");
-        exit(ERROR);
-    }
-}
-
-/**
- * @brief Attempts to resolve the hostname or IP address provided with
- * the Domain Name System (DNS) and reports success or failure.
- * @param pszHostName The hostname or IP address of the remote computer
- * that is to be resolved with DNS.
- * @param ppHostEntry Address of a storage location that is to be filled with a
- *  hostent structure upon successful resolution of the hostname or 
- *  IP address provided.  
- * @returns Zero if resolution has failed; nonzero otherwise.
- * @remarks If this function returns nonzero, then the value of '*he'
- *  will be the address of a storage location containing a hostent
- *  structure containing information for the remote host.
- */
-int IsHostnameValid(const char *pszHostName, struct hostent **ppHostEntry) {
-    if (IsNullOrWhiteSpace(pszHostName)) {
-        // The hostnameOrIP parameter cannot be blank, since we need to find
-        // out if the hostname or IP supplied is valid.  Can't very well do that
-        // for a blank value!
-        return FALSE;
-    }
-
-    if (ppHostEntry == NULL) {
-        // return FALSE if no storage location for the 'he' pointer passed
-        return FALSE;
-    }
-
-    LockSocketMutex();
-    {
-        if ((*ppHostEntry = gethostbyname(pszHostName)) == NULL) {
-            *ppHostEntry = NULL;
-
-            UnlockSocketMutex();
-
-            // return FALSE if no storage location for the 'he' pointer passed
-            return FALSE;
-        }
-    }
-    UnlockSocketMutex();
-
-    return TRUE;
-}
-
-/**
- * @brief Determines whether the socket file descriptor passed is valid.
- * @param nSocket An integer specifying the value of the file descriptor to be checked.
- * @returns TRUE if the descriptor is valid; FALSE otherwise.
- * @remarks "Valid" in this context simply means a positive integer.  This
- * function's job is not to tell you whether the socket is currently open
- * or closed.
- */
-int IsSocketValid(int nSocket) {
-    /* Linux socket file descriptors are always positive, nonzero
-     * integers when they represent a valid socket handle.
-     */
-    if (nSocket <= 0) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
-
-/**
- * @brief Reports the error message specified as well as the error from
- *  the system.  Closes the socket file descriptor provided in order to
- *   free operating system resources.  Exits the program with the ERROR exit
- *   code.
- * @param nSocket Socket file descriptor to be closed after the error
- *  has been reported.
- * @param pszErrorMessage Additional error text to be echoed to the console.
- **/
-void ErrorAndClose(int nSocket, const char *pszErrorMessage) {
-    if (IsNullOrWhiteSpace(pszErrorMessage)) {
-        perror(NULL);
-        exit(ERROR);
-        return;   // This return statement might not fire, but just in case.
-    }
-
-    LogError(pszErrorMessage);
-
-    perror(NULL);
-
-    if (nSocket > 0) {
-        close(nSocket);
-        fprintf(stderr, "Exiting with error code %d.", ERROR);
-    }
-
-    exit(ERROR);
-}
-
-/**
- * @brief Reports the error message specified as well as the error from
- *  the system. Exits the program with the ERROR exit code.
- * @param pszErrorMessage Additional error text to be echoed to the console.
- **/
-void HandleError(const char* pszErrorMessage) {
-    if (IsNullOrWhiteSpace(pszErrorMessage)) {
-        return;
-    }
-
-    LogError(pszErrorMessage);
-    perror(NULL);
-    exit(ERROR);
-}
-
-/**
- * @brief Creates a new socket endpoint for communicating with a remote
- *  host over TCP/IP.
- * @returns Socket file descriptor which provides a handle to the newly-
- *  created socket endpoint.
- * @remarks If an error occurs, prints the error to the console and forces
- *  the program to exit with the ERROR exit code.
- */
-int CreateSocket() {
-    int nSocket = -1;
-
-    LockSocketMutex();
-    {
-        nSocket = socket(AF_INET, SOCK_STREAM, 0);
-        if (!IsSocketValid(nSocket)) {
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-    }
-    UnlockSocketMutex();
-
-    SetSocketReusable(nSocket);
-
-    return nSocket;
-}
-
-void SetSocketNonBlocking(int nSocket) {
-
-    if (!IsSocketValid(nSocket)) {
-        return;
-    }
-
-    int flags = 0;
-
-    /* Set socket to non-blocking */
-
-    if ((flags = fcntl(nSocket, F_GETFL, 0)) < 0) {
-        return;
-    }
-
-    if (fcntl(nSocket, F_SETFL, flags | O_NONBLOCK) < 0) {
-        return;
-    }
-}
-
-int SetSocketReusable(int nSocket) {
-    int nResult = ERROR;
-
-    if (!IsSocketValid(nSocket)) {
-
-        return nResult;
-    }
-
-    // Set socket options to allow the socket to be reused.
-    LockSocketMutex();
-    {
-        nResult = setsockopt(nSocket, SOL_SOCKET, SO_REUSEADDR, &(int ) {
-                    1 }, sizeof(int));
-        if (nResult < 0) {
-            perror("setsockopt");
-
-            UnlockSocketMutex();
-
-            return nResult;
-        }
-    }
-    UnlockSocketMutex();
-
-    return nResult;
-}
-
-/**
- * @brief Populates the port and address information for a server
- * so the server knows the hostname/IP address and port of the computer
- * it is listening on.
- * @param pszPort String containing the port number to listen on.  Must be numeric.
- * @param pAddrInfo Address of storage that will receive a filled-in sockaddr_in
- * structure that defines the server endpoint.
- * @remarks If invalid input is supplied or an error occurs, reports
- * these problems to the console and forces the program to die with the
- * ERROR exit code.
- */
-void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo) {
-    if (IsNullOrWhiteSpace(pszPort)) {
-        FreeSocketMutex();
-
-        exit(ERROR);
-    }
-
-    LockSocketMutex();
-    {
-        if (pAddrInfo == NULL) {
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-
-        // Get the port number from its string representation and then
-        // validate that it is in the proper range
-        int portnum = 0;
-        int result = StringToLong(pszPort, (long*) &portnum);
-        if (result >= 0 && !IsUserPortNumberValid(portnum)) {
-
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-
-        // Populate the fields of the sockaddr_in structure passed to us
-        // with the proper values.
-        pAddrInfo->sin_family = AF_INET;
-        pAddrInfo->sin_port = htons(portnum);
-        pAddrInfo->sin_addr.s_addr = htons(INADDR_ANY);
-    }
-    UnlockSocketMutex();
-}
-
-/**
- * @brief Binds a server socket to the address and port specified by the 'addr'
- * parameter.
- * @param nSocket Socket file descriptor that references the socket to be bound.
- * @param pAddrInfo Pointer to a sockaddr_in structure that specifies the host
- * and port to which the socket endpoint should be bound.
- */
-int BindSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
-    int nResult = ERROR;
-
-    if (!IsSocketValid(nSocket)) {
-        errno = EBADF;
-
-        perror("BindSocket");
-
-        FreeSocketMutex();
-
-        exit(ERROR);
-    }
-
-    LockSocketMutex();
-    {
-        if (pAddrInfo == NULL) {
-            errno = EINVAL; // addr param required
-
-            perror("BindSocket");
-
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-
-        nResult = bind(nSocket, (struct sockaddr*) pAddrInfo, sizeof(*pAddrInfo));
-        if (nResult < 0) {
-            perror("BindSocket");
-
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-    }
-    UnlockSocketMutex();
-
-    return nResult;
-}
-
-/**
- * @brief Sets up a TCP or UDP server socket to listen on a port and IP address
- * to which it has been bound previously with the BindSocket function.
- * @params nSocket Socket file descriptor.
- * @returns ERROR if the socket file descriptor passed in nSocket
- * does not represent a valid, open socket and sets errno to EBADF.  Otherwise,
- * returns the result of calling listen on the socket file descriptor
- * passed with a backlog size of BACKLOG_SIZE (128 by default).  Zero is
- * returned if the operation was successful.
- */
-int ListenSocket(int nSocket) {
-    int nResult = ERROR;
-
-    if (!IsSocketValid(nSocket)) {
-        errno = EBADF;
-
-        perror("ListenSocket");
-
-        FreeSocketMutex();
-
-        exit(ERROR);
-    }
-
-    LockSocketMutex();
-    {
-        nResult = listen(nSocket, BACKLOG_SIZE);
-
-        if (nResult < 0) {
-            perror("ListenSocket");
-
-            UnlockSocketMutex();
-
-            FreeSocketMutex();
-
-            exit(ERROR);
-        }
-    }
-    UnlockSocketMutex();
-
-    return nResult;
-}
-
-/**
- * @brief Accepts an incoming connection on a socket and returns information
- * about the remote host.
- * @param nSocket Socket file descriptor on which to accept new incoming
- * connections.
- * @param pAddrInfo Reference to a sockaddr_in structure that receives info
- * aboutthe IP address of the remote endpoint.
- * @returns Socket file descriptor representing the local endpoint of the new
- * incoming connection; or a negative number indicating that errno should be
- * read for the error description.
- * @remarks Returns ERROR if any of the following are true: (a) sets errno
- * to EBADF if nSocket is an invalid value (nonpositive) or (b) sets errno to
- * EINVAL if addr is NULL. This function blocks the calling thread until an
- * incoming connection has been  established.
- */
 int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
 
     int nClientSocket = ERROR;
@@ -521,20 +72,454 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
     return nClientSocket;
 }
 
-/**
- * @brief Reads a line of data, terminated by the '\n' character, from a socket.
- * @param nSocket Socket file descriptor from which to receive data.
- * @param ppszReceiveBuffer Reference to an address at which to allocate storage
- * for the received data.
- * @returns Total bytes read for the current line or a negative number
- * otherwise.
- * @remarks This function will forcibly terminate the calling program
- * with an exit code of ERROR if the operation fails.  It is the responsibility
- * of the caller to free the memory referenced by *buf.  The caller must always
- * pass NULL for buf.  If valid storage is passed, this function will free the
- * storage referenced by *buf and allocate brand-new storage for the incoming
- * line.
- */
+///////////////////////////////////////////////////////////////////////////////
+// BindSocket function
+
+int BindSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
+    int nResult = ERROR;
+
+    if (!IsSocketValid(nSocket)) {
+        errno = EBADF;
+
+        perror("BindSocket");
+
+        FreeSocketMutex();
+
+        exit(ERROR);
+    }
+
+    LockSocketMutex();
+    {
+        if (pAddrInfo == NULL) {
+            errno = EINVAL; // addr param required
+
+            perror("BindSocket");
+
+            UnlockSocketMutex();
+
+            FreeSocketMutex();
+
+            exit(ERROR);
+        }
+
+        nResult = bind(nSocket, (struct sockaddr*) pAddrInfo,
+                sizeof(*pAddrInfo));
+        if (nResult < 0) {
+            perror("BindSocket");
+
+            UnlockSocketMutex();
+
+            FreeSocketMutex();
+
+            exit(ERROR);
+        }
+    }
+    UnlockSocketMutex();
+
+    return nResult;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CloseSocket function
+
+void CloseSocket(int nSocket) {
+    if (!IsSocketValid(nSocket)) {
+        return; // just silently fail if the socket file descriptor
+                // passed is invalid
+    }
+
+    if (OK != shutdown(nSocket, SHUT_RD)) {
+        /* This is not really an error, since shutting down a socket
+         * really just means disabling reads/writes on an open socket,
+         * not closing it.  Who cares if we cannot perform this
+         * operation? */
+
+        LogWarning("CloseSocket: Failed to shut down the socket with file "
+                "descriptor %d.", nSocket);
+    }
+
+    int nResult = close(nSocket);
+
+    if (nResult < 0) {
+        return;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// ConnectSocket function -- connects a client to a server.
+
+int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
+    int result = ERROR;
+
+    if (!IsSocketValid(nSocket)) {
+        exit(result);
+    }
+
+    if (!IsUserPortNumberValid(nPort)) {
+        if (stderr != GetErrorLogFileHandle()) {
+            fprintf(stderr,
+                    "ConnectSocket: An invalid value is being used for the "
+                            "port number of the server.\n");
+        }
+
+        CloseSocket(nSocket);
+
+        FreeSocketMutex();
+
+        exit(result);
+    }
+
+    struct sockaddr_in serverAddress;       // Structure for the server
+                                            // address and port
+
+    struct hostent *pHostEntry = NULL;
+
+    // First, try to resolve the host name or IP address passed to us,
+    // to ensure that the host can even be found on the network in the first
+    // place.  Calling the function below also has the added bonus of
+    // filling in a hostent structure for us if it succeeds.
+    if (!IsHostnameValidEx(pszHostName, &pHostEntry)) {
+        if (GetErrorLogFileHandle() != stderr) {
+            fprintf(stderr, "ConnectSocket: Cannot connect to server on '%s'.",
+                    pszHostName);
+        }
+
+        CloseSocket(nSocket);
+
+        FreeSocketMutex();
+
+        exit(result);
+    }
+
+    LockSocketMutex();
+    {
+        /* copy the network address to sockaddr_in structure */
+        memcpy(&serverAddress.sin_addr, pHostEntry->h_addr_list[0],
+                pHostEntry->h_length);
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_port = htons(nPort);
+
+        if ((result = connect(nSocket, (struct sockaddr*) &serverAddress,
+                sizeof(serverAddress))) < 0) {
+            UnlockSocketMutex();
+
+            FreeSocketMutex();
+
+            CloseSocket(nSocket);
+
+            /* If we are logging to a file and not the screen, print a
+             * message on the screen for an interactive user that the connect
+             * operation failed. */
+            if (GetLogFileHandle() != stdout) {
+                fprintf(stdout, CONNECT_OPERATION_FAILED, pszHostName, nPort);
+            }
+
+            CloseLogFileHandles();
+
+            exit(ERROR);
+        }
+    }
+    UnlockSocketMutex();
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CreateSocket function
+
+int CreateSocket() {
+    int nSocket = -1;
+
+    LockSocketMutex();
+    {
+        nSocket = socket(AF_INET, SOCK_STREAM, 0);
+        if (!IsSocketValid(nSocket)) {
+            UnlockSocketMutex();
+
+            FreeSocketMutex();
+
+            exit(ERROR);
+        }
+    }
+    UnlockSocketMutex();
+
+    SetSocketReusable(nSocket);
+
+    return nSocket;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CreateSocketMutex function - Allocates operating system resources for the
+// socket mutex handle.
+//
+
+// We are not using the corresponding CreateMutex function from the
+// mutex_core library since the concern is that not every client of THIS library
+// will necessarily want to do all socket communications in a critical section;
+// therefore we want to not add unnecessary dependencies.
+void CreateSocketMutex() {
+    // If the socket mutex is already not NULL, assume it's
+    // already been created; therefore, we have nothing to do here.
+    if (NULL != g_pSocketMutex) {
+        return;
+    }
+
+    g_pSocketMutex = (pthread_mutex_t*) malloc(1 * sizeof(pthread_mutex_t));
+    if (g_pSocketMutex == NULL) {
+        perror("LockSocketMutex");
+
+        exit(ERROR);
+    }
+
+    // Call pthread_mutex_init.  This version of CreateMutex just passes a
+    // mutex handle for the function to initialize with NULL for the attributes.
+    // We are using this instead of calling on mutex_core to avoid
+    // extraneous dependencies.
+    int nResult = pthread_mutex_init(g_pSocketMutex, NULL);
+    if (OK != nResult) {
+        // Cleanup the mutex handle if necessary
+        if (NULL != g_pSocketMutex) {
+            FreeSocketMutex();
+        }
+        perror("LockSocketMutex");
+        exit(ERROR);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// ErrorAndClose function
+
+void ErrorAndClose(int nSocket, const char *pszErrorMessage) {
+    if (IsNullOrWhiteSpace(pszErrorMessage)) {
+        perror(NULL);
+        exit(ERROR);
+        return;   // This return statement might not fire, but just in case.
+    }
+
+    LogError(pszErrorMessage);
+
+    perror(NULL);
+
+    if (nSocket > 0) {
+        close(nSocket);
+        fprintf(stderr, "Exiting with error code %d.", ERROR);
+    }
+
+    exit(ERROR);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// FreeSocketMutex function - Releases operating system resources consumed
+// by the socket mutex.
+//
+
+void FreeSocketMutex() {
+    if (NULL == g_pSocketMutex) {
+        // If we're here, assume that the socket mutex has already
+        // been freed; therefore, we have nothing to do.
+        return;
+    }
+
+    /* Destroy the mutex handle for socket use.  We are utilizing the
+     * bare-bones pthread_mutex_t  type and pthread_mutex_destroy system API,
+     * rather than the functions exported by the mutex_core library.  This is
+     * to avoid an unncessary dependency.  That is, I do not want to have to
+     * drag in the mutex library every single time I want to use this
+     * inetsock_core library. */
+
+    int nResult = pthread_mutex_destroy(g_pSocketMutex);
+    if (nResult != OK) {
+        perror("inetsock_core[FreeSocketMutex]");
+
+        exit(ERROR);
+    }
+
+    free(g_pSocketMutex);
+    g_pSocketMutex = NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// GetServerAddrInfo function
+
+void GetServerAddrInfo(const char *pszPort, struct sockaddr_in *pAddrInfo) {
+    if (IsNullOrWhiteSpace(pszPort)) {
+        FreeSocketMutex();
+
+        exit(ERROR);
+    }
+
+    LockSocketMutex();
+    {
+        if (pAddrInfo == NULL) {
+            UnlockSocketMutex();
+
+            FreeSocketMutex();
+
+            exit(ERROR);
+        }
+
+        // Get the port number from its string representation and then
+        // validate that it is in the proper range
+        int portnum = 0;
+        int result = StringToLong(pszPort, (long*) &portnum);
+        if (result >= 0 && !IsUserPortNumberValid(portnum)) {
+
+            UnlockSocketMutex();
+
+            FreeSocketMutex();
+
+            exit(ERROR);
+        }
+
+        // Populate the fields of the sockaddr_in structure passed to us
+        // with the proper values.
+        pAddrInfo->sin_family = AF_INET;
+        pAddrInfo->sin_port = htons(portnum);
+        pAddrInfo->sin_addr.s_addr = htons(INADDR_ANY);
+    }
+    UnlockSocketMutex();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// HandleError function
+
+void HandleError(const char* pszErrorMessage) {
+    if (IsNullOrWhiteSpace(pszErrorMessage)) {
+        return;
+    }
+
+    LogError(pszErrorMessage);
+
+    if (stderr != GetErrorLogFileHandle()) {
+        fprintf(stderr, "%s\n", pszErrorMessage);
+    }
+
+    perror(NULL);
+    exit(ERROR);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// IsHostnameValid function
+
+int IsHostnameValid(const char *pszHostName) {
+    struct hostent *pHostEntry;             // Host entry
+
+    return IsHostnameValidEx(pszHostName, &pHostEntry);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// IsHostnameValidEx function
+
+int IsHostnameValidEx(const char *pszHostName, struct hostent** ppHostEntry) {
+    if (IsNullOrWhiteSpace(pszHostName)) {
+        // The hostnameOrIP parameter cannot be blank, since we need to find
+        // out if the hostname or IP supplied is valid.  Can't very well do that
+        // for a blank value!
+        return FALSE;
+    }
+
+    if (ppHostEntry == NULL) {
+        return FALSE;
+    }
+
+    LockSocketMutex();
+    {
+        if ((*ppHostEntry = gethostbyname(pszHostName)) == NULL) {
+            *ppHostEntry = NULL;
+
+            UnlockSocketMutex();
+
+            // return FALSE if no storage location for the 'he' pointer passed
+            return FALSE;
+        }
+    }
+    UnlockSocketMutex();
+
+    return TRUE;
+
+}
+///////////////////////////////////////////////////////////////////////////////
+// IsUserPortNumberValid function
+
+int IsUserPortNumberValid(int nPort) {
+    return nPort >= 1024 && nPort < 49151;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// IsSocketValid function
+
+int IsSocketValid(int nSocket) {
+    /* Linux socket file descriptors are always positive, nonzero
+     * integers when they represent a valid socket handle.
+     */
+    if (nSocket <= 0) {
+        return FALSE;
+    }
+
+    return TRUE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// ListenSocket function
+
+int ListenSocket(int nSocket) {
+    int nResult = ERROR;
+
+    if (!IsSocketValid(nSocket)) {
+        errno = EBADF;
+
+        perror("ListenSocket");
+
+        FreeSocketMutex();
+
+        exit(ERROR);
+    }
+
+    LockSocketMutex();
+    {
+        nResult = listen(nSocket, BACKLOG_SIZE);
+
+        if (nResult < 0) {
+            perror("ListenSocket");
+
+            UnlockSocketMutex();
+
+            FreeSocketMutex();
+
+            exit(ERROR);
+        }
+    }
+    UnlockSocketMutex();
+
+    return nResult;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// LockSocketMutex function -- for internal use by this code only.
+
+void LockSocketMutex() {
+    int nResult = ERROR;
+
+    if (NULL == g_pSocketMutex) {
+        // just do nothing. (g_pSocketMutex will have the value of NULL in
+        // the case that the caller of this library did not call
+        // CreateSocketMutex in their main function)
+
+        return; /* if we are here then we are not using mutexes at all */
+    }
+
+    nResult = pthread_mutex_lock(g_pSocketMutex);
+    if (OK != nResult) {
+        perror("LockSocketMutex");
+        exit(ERROR);
+    }
+
+    return; 	// Succeeded
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Receive function - receives data from a TCP socket.
+
 int Receive(int nSocket, char **ppszReceiveBuffer) {
     int nTotalBytesRead = 0;
 
@@ -567,7 +552,7 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
     explicit_bzero((void*) *ppszReceiveBuffer, nInitialReceiveBufferSize);
 
     while (1) {
-        char ch;		// receive one char at a time until a newline is found
+        char ch;        // receive one char at a time until a newline is found
         nBytesRead = recv(nSocket, &ch, RECV_BLOCK_SIZE, RECV_FLAGS);
         if (nBytesRead < 0) {
             if (errno == EBADF || errno == EWOULDBLOCK) {
@@ -631,18 +616,38 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
     return nTotalBytesRead;
 }
 
-/**
- * @brief Helper function to guarantee that entire message provided gets
- * sent over a socket.
- * @param nSocket File descriptor for the socket.  Socket must be in the
- * connected state.
- * @param pszMessage Reference to the start of the buffer containing the message
- * to be sent.
- * @param nLength Size of the buffer to be used for sending.
- * @return Total number of bytes sent, or -1 if an error occurred.
- * @remarks This function will kill the program after spitting out an error
- * message if something goes wrong.
- */
+///////////////////////////////////////////////////////////////////////////////
+// Send function
+
+int Send(int nSocket, const char *pszMessage) {
+    if (!IsSocketValid(nSocket)) {
+        errno = EBADF;
+
+        exit(ERROR);
+    }
+
+    if (IsNullOrWhiteSpace(pszMessage)) {
+        // Nothing to send
+        return 0;
+    }
+    int nMessageLength = strlen(pszMessage);
+
+    int bytes_sent = SendAll(nSocket, pszMessage, nMessageLength);
+
+    if (bytes_sent < 0) {
+        ErrorAndClose(nSocket, "Send: Failed to send data.");
+
+        FreeSocketMutex();
+
+        exit(ERROR);
+    }
+
+    return bytes_sent;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// SendAll function
+
 int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
     int nTotalBytesSent = 0;
 
@@ -702,137 +707,77 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
     return nTotalBytesSent;
 }
 
-int Send(int nSocket, const char *pszMessage) {
+///////////////////////////////////////////////////////////////////////////////
+// SetSocketNonBlocking function
+
+void SetSocketNonBlocking(int nSocket) {
+
     if (!IsSocketValid(nSocket)) {
-        errno = EBADF;
-
-        exit(ERROR);
+        return;
     }
 
-    if (IsNullOrWhiteSpace(pszMessage)) {
-        // Nothing to send
-        return 0;
-    }
-    int nMessageLength = strlen(pszMessage);
+    int flags = 0;
 
-    int bytes_sent = SendAll(nSocket, pszMessage, nMessageLength);
+    /* Set socket to non-blocking */
 
-    if (bytes_sent < 0) {
-        ErrorAndClose(nSocket, "Send: Failed to send data.");
-
-        FreeSocketMutex();
-
-        exit(ERROR);
+    if ((flags = fcntl(nSocket, F_GETFL, 0)) < 0) {
+        return;
     }
 
-    return bytes_sent;
+    if (fcntl(nSocket, F_SETFL, flags | O_NONBLOCK) < 0) {
+        return;
+    }
 }
 
-/**
- * @brief Connects a socket to a remote host whose hostname or IP address and
- * port number is specified.
- * @param nSocket Socket file descriptor representing a socket that is not yet
- * connected to a remote endpoint.
- * @param pszHostName String indicating the human-readable (in DNS) hostname
- * or the IP address of the remote host.
- * @param nPort Port number that the service on the remote host is listening on.
- * @returns Zero if successful; ERROR if an error occurred.  The errno
- * value should be examined if this happens.  In other cases, this function
- * forcibly terminates the calling program with the ERROR exit code.
- */
-int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
-    int result = ERROR;
+///////////////////////////////////////////////////////////////////////////////
+//SetSocketReusable function
+
+int SetSocketReusable(int nSocket) {
+    int nResult = ERROR;
 
     if (!IsSocketValid(nSocket)) {
-        exit(result);
+
+        return nResult;
     }
 
-    if (!IsUserPortNumberValid(nPort)) {
-        if (stderr != GetErrorLogFileHandle()) {
-            fprintf(stderr,
-                    "ConnectSocket: An invalid value is being used for the "
-                            "port number of the server.");
-        }
-
-        CloseSocket(nSocket);
-
-        FreeSocketMutex();
-
-        exit(result);
-    }
-
-    struct hostent *pHostEntry;				// Host entry
-    struct sockaddr_in serverAddress; 		// Structure for the server
-                                            // address and port
-
-    // First, try to resolve the host name or IP address passed to us,
-    // to ensure that the host can even be found on the network in the first
-    // place.  Calling the function below also has the added bonus of
-    // filling in a hostent structure for us if it succeeds.
-    if (!IsHostnameValid(pszHostName, &pHostEntry)) {
-        if (GetErrorLogFileHandle() != stderr) {
-            fprintf(stderr, "ConnectSocket: Cannot connect to server on '%s'.",
-                    pszHostName);
-        }
-
-        CloseSocket(nSocket);
-
-        FreeSocketMutex();
-
-        exit(result);
-    }
-
+    // Set socket options to allow the socket to be reused.
     LockSocketMutex();
     {
-        /* copy the network address to sockaddr_in structure */
-        memcpy(&serverAddress.sin_addr, pHostEntry->h_addr_list[0], pHostEntry->h_length);
-        serverAddress.sin_family = AF_INET;
-        serverAddress.sin_port = htons(nPort);
+        nResult = setsockopt(nSocket, SOL_SOCKET, SO_REUSEADDR, &(int ) {
+                    1 }, sizeof(int));
+        if (nResult < 0) {
+            perror("setsockopt");
 
-        if ((result = connect(nSocket, (struct sockaddr*) &serverAddress,
-                sizeof(serverAddress))) < 0) {
             UnlockSocketMutex();
 
-            FreeSocketMutex();
-
-            CloseSocket(nSocket);
-
-            /* If we are logging to a file and not the screen, print a
-             * message on the screen for an interactive user that the connect
-             * operation failed. */
-            if (GetLogFileHandle() != stdout) {
-                fprintf(stdout, CONNECT_OPERATION_FAILED, pszHostName, nPort);
-            }
-
-            CloseLogFileHandles();
-
-            exit(ERROR);
+            return nResult;
         }
     }
     UnlockSocketMutex();
 
-    return result;
+    return nResult;
 }
 
-void CloseSocket(int nSocket) {
-    if (!IsSocketValid(nSocket)) {
-        return;	// just silently fail if the socket file descriptor
-                    // passed is invalid
-    }
+///////////////////////////////////////////////////////////////////////////////
+// UnlockSocketMutex function -- internal function for use by this library
+// only
 
-    if (OK != shutdown(nSocket, SHUT_RD)) {
-        /* This is not really an error, since shutting down a socket
-         * really just means disabling reads/writes on an open socket,
-         * not closing it.  Who cares if we cannot perform this
-         * operation? */
+void UnlockSocketMutex() {
+    if (NULL == g_pSocketMutex) {
+        // If the g_pSocketMutex handle is NULL, then assume that the caller of
+        // this library is writing a single-threaded application which will not
+        // need mutexes for its socket communications. Therefore, in this case,
+        // just do nothing. (g_pSocketMutex will have the value of NULL
+        // in the case that the caller of this library did not call
+        // CreateSocketMutex in their main function)
 
-        LogWarning("CloseSocket: Failed to shut down the socket with file "
-                "descriptor %d.", nSocket);
-    }
-
-    int nResult = close(nSocket);
-
-    if (nResult < 0) {
         return;
     }
+
+    int nResult = pthread_mutex_unlock(g_pSocketMutex);
+    if (OK != nResult) {
+        perror("UnlockSocketMutex");
+        exit(ERROR);
+    }
 }
+

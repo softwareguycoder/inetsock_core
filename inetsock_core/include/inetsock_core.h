@@ -120,15 +120,26 @@ void HandleError(const char* pszErrorMessage);
  * the Domain Name System (DNS) and reports success or failure.
  * @param pszHostName The hostname or IP address of the remote computer
  * that is to be resolved with DNS.
- * @param ppHostEntry Address of a storage location that is to be filled with a
- * hostent structure upon successful resolution of the hostname or
- * IP address provided.
  * @returns Zero if resolution has failed; nonzero otherwise.
  * @remarks If this function returns nonzero, then the value of '*he'
  *  will be the address of a storage location containing a hostent
  *  structure containing information for the remote host.
  */
-int IsHostnameValid(const char *pszHostName, struct hostent **ppHostEntry);
+int IsHostnameValid(const char *pszHostName);
+
+/**
+ * @brief Attempts to resolve the hostname or IP address provided with
+ * the Domain Name System (DNS) and reports success or failure.
+ * @param pszHostName The hostname or IP address of the remote computer
+ * that is to be resolved with DNS.
+ * @param ppHostEntry Address of a hostent structure to be filled by the
+ * gethostbyname function.
+ * @returns Zero if resolution has failed; nonzero otherwise.
+ * @remarks If this function returns nonzero, then the value of '*he'
+ *  will be the address of a storage location containing a hostent
+ *  structure containing information for the remote host.
+ */
+int IsHostnameValidEx(const char *pszHostName, struct hostent** ppHostEntry);
 
 /**
  * \brief Checks the integer value supplied to ensure it's a valid user port
@@ -191,6 +202,20 @@ int Receive(int nSocket, char **ppszReceiveBuffer);
  *  cause of the error.
  */
 int Send(int nSocket, const char *pszMessage);
+
+/**
+ * @brief Helper function to guarantee that entire message provided gets
+ * sent over a socket.
+ * @param nSocket File descriptor for the socket.  Socket must be in the
+ * connected state.
+ * @param pszMessage Reference to the start of the buffer containing the message
+ * to be sent.
+ * @param nLength Size of the buffer to be used for sending.
+ * @return Total number of bytes sent, or -1 if an error occurred.
+ * @remarks This function will kill the program after spitting out an error
+ * message if something goes wrong.
+ */
+int SendAll(int nSocket, const char *pszMessage, size_t nLength);
 
 /**
  * @brief Sets preferences on the socket specified to make it non-blocking.
