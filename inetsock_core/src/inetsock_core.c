@@ -48,7 +48,7 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
 
     if ((nClientSocket = accept(nSocket, (struct sockaddr*) pAddrInfo,
             &clientAddressLength)) < 0) {
-        if (EBADF != errno) {
+        if (EBADF != errno && EINVAL != errno) {
             perror("AcceptSocket");
 
             FreeSocketMutex();
@@ -62,7 +62,7 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
          * terminating the program.  If errno is anything else
          * besides EBADF, then forcibly exit. */
 
-        if (EBADF == errno) {
+        if (EBADF == errno || EINVAL == errno) {
             return ERROR;
         } else {
             exit(ERROR);
