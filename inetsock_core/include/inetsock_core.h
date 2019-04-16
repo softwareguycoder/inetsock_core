@@ -109,13 +109,6 @@ void FreeSocketMutex();
 void GetServerAddrInfo(int nPort, struct sockaddr_in *pAddrInfo);
 
 /**
- *  @brief Reports the error message specified as well as the error from
- *  the system. Exits the program with the ERROR exit code.
- *  @param pszErrorMessage Additional error text to be echoed to the console.
- **/
-void HandleError(const char* pszErrorMessage);
-
-/**
  * @brief Attempts to resolve the hostname or IP address provided with
  * the Domain Name System (DNS) and reports success or failure.
  * @param pszHostName The hostname or IP address of the remote computer

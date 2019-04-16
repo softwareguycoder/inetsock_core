@@ -368,24 +368,6 @@ void GetServerAddrInfo(int nPort, struct sockaddr_in *pAddrInfo) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// HandleError function
-
-void HandleError(const char* pszErrorMessage) {
-    if (IsNullOrWhiteSpace(pszErrorMessage)) {
-        return;
-    }
-
-    LogError(pszErrorMessage);
-
-    if (stderr != GetErrorLogFileHandle()) {
-        fprintf(stderr, "%s\n", pszErrorMessage);
-    }
-
-    perror(NULL);
-    exit(ERROR);
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // IsHostnameValid function
 
 int IsHostnameValid(const char *pszHostName) {
