@@ -228,7 +228,7 @@ int ConnectSocket(int nSocket, const char *pszHostName, int nPort) {
 // CreateSocket function
 
 int CreateSocket() {
-    int nSocket = -1;
+    int nSocket = INVALID_SOCKET_HANDLE;
 
     LockSocketMutex();
     {
