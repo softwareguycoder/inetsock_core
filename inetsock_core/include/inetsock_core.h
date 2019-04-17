@@ -8,6 +8,7 @@
 #define RECV_BLOCK_SIZE	1
 #define RECV_FLAGS		0
 #define BACKLOG_SIZE	128		// Max number of client connections
+#define INVALID_SOCKET_HANDLE -1
 
 /**
  * @brief Accepts an incoming connection on a socket and returns information
