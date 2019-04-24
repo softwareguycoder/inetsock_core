@@ -590,8 +590,8 @@ int Receive(int nSocket, char **ppszReceiveBuffer) {
 
 int Send(int nSocket, const char *pszMessage) {
     if (!IsSocketValid(nSocket)) {
+        fprintf(stderr, "Send: Invalid socket handle.\n");
         errno = EBADF;
-
         exit(ERROR);
     }
 
@@ -599,17 +599,20 @@ int Send(int nSocket, const char *pszMessage) {
         // Nothing to send
         return 0;
     }
+
     int nMessageLength = strlen(pszMessage);
 
     int bytes_sent = SendAll(nSocket, pszMessage, nMessageLength);
 
     if (bytes_sent < 0) {
-        ErrorAndClose(nSocket, "Send: Failed to send data.");
+        ErrorAndClose(nSocket, "Send: Failed to send data.\n");
 
         FreeSocketMutex();
 
         exit(ERROR);
     }
+
+    fprintf(stdout, "%d B sent.\n", bytes_sent);
 
     return bytes_sent;
 }
