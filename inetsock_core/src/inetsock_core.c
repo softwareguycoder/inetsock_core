@@ -612,7 +612,9 @@ int Send(int nSocket, const char *pszMessage) {
         exit(ERROR);
     }
 
-    fprintf(stdout, "%d B sent.\n", bytes_sent);
+    //fprintf(stdout, "%d B sent.\n", bytes_sent);
+
+    //fprintf(stdout, "Send: Done\n");
 
     return bytes_sent;
 }
@@ -660,10 +662,12 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
     int nBytesRemaining = (int) nLength;
 
     while (nTotalBytesSent < nBytesRemaining) {
-        int nBytesSent = send(nSocket, ptr, nLength, 0);
+        int nBytesSent = send(nSocket, ptr, nLength, MSG_NOSIGNAL);
 
         if (nBytesSent < 1) {
             perror("SendAll");
+
+            CloseSocket(nSocket);
 
             FreeSocketMutex();
 
