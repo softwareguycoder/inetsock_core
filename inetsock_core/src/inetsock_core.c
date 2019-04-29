@@ -602,9 +602,9 @@ int Send(int nSocket, const char *pszMessage) {
 
     int nMessageLength = strlen(pszMessage);
 
-    int bytes_sent = SendAll(nSocket, pszMessage, nMessageLength);
+    int nBytesSent = SendAll(nSocket, pszMessage, nMessageLength);
 
-    if (bytes_sent < 0) {
+    if (nBytesSent < 0) {
         ErrorAndClose(nSocket, "Send: Failed to send data.\n");
 
         FreeSocketMutex();
@@ -616,7 +616,7 @@ int Send(int nSocket, const char *pszMessage) {
 
     //fprintf(stdout, "Send: Done\n");
 
-    return bytes_sent;
+    return nBytesSent;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
