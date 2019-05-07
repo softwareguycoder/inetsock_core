@@ -665,7 +665,7 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
         	if (errno != EPIPE && errno != EBADF) {
         		perror("SendAll");
         	} else {
-        		fprintf(stderr, "The connection with the remote host has terminated.\n");
+        		fprintf(stderr, CONNECTION_TERMINATED);
         	}
 
             CloseSocket(nSocket);
