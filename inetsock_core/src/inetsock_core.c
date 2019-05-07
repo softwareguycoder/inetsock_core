@@ -4,12 +4,8 @@
 #include "stdafx.h"
 #include "inetsock_core.h"
 
+#include "inetsock_core_symbols.h"
 #include "socket_mutex.h"
-
-#ifndef CONNECT_OPERATION_FAILED
-#define CONNECT_OPERATION_FAILED \
-	"connect: Failed to contact server on '%s' and port %d.\n"
-#endif //CONNECT_OPERATION_FAILED
 
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
