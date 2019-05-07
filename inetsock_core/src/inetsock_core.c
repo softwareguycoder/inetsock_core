@@ -636,8 +636,7 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
         exit(ERROR);
     }
 
-    if (pszMessage == NULL || ((char*) pszMessage)[0] == '\0'
-            || strlen((char*) pszMessage) == 0) {
+    if (IsNullOrWhiteSpace(pszMessage)) {
         errno = EINVAL;
 
         perror("SendAll");
