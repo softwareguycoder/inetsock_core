@@ -6,8 +6,10 @@
 
 #include "socket_mutex.h"
 
-#define CONNECT_OPERATION_FAILED "connect: Failed to contact server on " \
-                                 "'%s' and port %d.\n"
+#ifndef CONNECT_OPERATION_FAILED
+#define CONNECT_OPERATION_FAILED \
+	"connect: Failed to contact server on '%s' and port %d.\n"
+#endif //CONNECT_OPERATION_FAILED
 
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
@@ -664,7 +666,11 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
         int nBytesSent = send(nSocket, ptr, nLength, MSG_NOSIGNAL);
 
         if (nBytesSent < 1) {
-            perror("SendAll");
+        	if (errno != EPIPE && errno != EBADF) {
+        		perror("SendAll");
+        	} else {
+        		fprintf(stderr, "The connection with the remote host has terminated.\n");
+        	}
 
             CloseSocket(nSocket);
 
