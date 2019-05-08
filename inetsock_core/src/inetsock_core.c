@@ -665,12 +665,21 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
         	if (errno != EPIPE && errno != EBADF) {
         		perror("SendAll");
         	} else {
+        		/* throw the socket away gracefully */
         		fprintf(stderr, CONNECTION_TERMINATED);
+        		fprintf(stderr, "Failed to send: %s", ptr);
+        		CloseSocket(nSocket);	// give this defunct socket back to OS
+        		return 0;
         	}
 
+        	fprintf(stderr, "Closing TCP endpoint...\n");
             CloseSocket(nSocket);
 
+            fprintf(stderr, "Cleaning up operating system resources..\n");
+
             FreeSocketMutex();
+
+            fprintf(stderr, "<terminated>\n");
 
             exit(ERROR);
         }
