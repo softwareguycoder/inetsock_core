@@ -10,6 +10,14 @@
 #define BACKLOG_SIZE	128		// Max number of client connections
 #define INVALID_SOCKET_VALUE -1
 
+typedef int (*LPRECEIVE_DATA_HANDLER)(char**);
+
+typedef int (*LPRECEIVE_DATA_HANDLER2)(void*, char**);
+
+typedef void (*LPRECEIVE_LINE_PROCESSOR)(const char*, int);
+
+typedef BOOL (*LPRECEIVE_TERM_PREDICATE)(const char*);
+
 /**
  * @brief Accepts an incoming connection on a socket and returns information
  * about the remote host.
@@ -167,6 +175,51 @@ int IsSocketValid(int nSocket);
  * successful.
  */
 int ListenSocket(int nSocket);
+
+/**
+ * @brief Processes multiline input over a socket using a trio of function
+ * pointers.
+ * @param lpfnDataHandler Address of a function that is called to execute a
+ * receive operation on the socket.  This may vary from implementation to
+ * implementation.
+ * @param lpfnLineProcessor Address of a function that is called to process
+ * each line of data as it comes in.
+ * @param lpfnTermPredicate Address of a function that examines the currently-
+ * received content and decides whether the end of the content has been
+ * reached.
+ * @remarks Call this function to run a synchronous receive loop to recieve
+ * lines over a socket.  Since what constitutes a line, what is done with the
+ * current line, and when the content ends is all implementation-specifics,
+ * applications must provide callbacks conforming to the signatures given
+ * in this function's prototype.
+ */
+void ReceiveMultilineData(
+		LPRECEIVE_DATA_HANDLER lpfnDataHandler,
+		LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
+		LPRECEIVE_TERM_PREDICATE lpfnTermPredicate);
+
+/**
+ * @brief Processes multiline input over a socket using a trio of function
+ * pointers.
+ * @param lpfnDataHandler Address of a function that is called to execute a
+ * receive operation on the socket.  This may vary from implementation to
+ * implementation.
+ * @param lpfnLineProcessor Address of a function that is called to process
+ * each line of data as it comes in.
+ * @param lpfnTermPredicate Address of a function that examines the currently-
+ * received content and decides whether the end of the content has been
+ * reached.
+ * @remarks Call this function to run a synchronous receive loop to recieve
+ * lines over a socket.  Since what constitutes a line, what is done with the
+ * current line, and when the content ends is all implementation-specifics,
+ * applications must provide callbacks conforming to the signatures given
+ * in this function's prototype.
+ */
+void ReceiveMultilineData2(
+    void* pvData,
+    LPRECEIVE_DATA_HANDLER2 lpfnDataHandler2,
+    LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
+    LPRECEIVE_TERM_PREDICATE lpfnTermPredicate);
 
 /**
  * @brief Reads a line of data, terminated by the '\n' character, from a socket.
