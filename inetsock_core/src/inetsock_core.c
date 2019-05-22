@@ -10,6 +10,23 @@
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
 ///////////////////////////////////////////////////////////////////////////////
+// GetLineCharCount function
+
+int GetLineCharCount(const char* pszLine) {
+  int result = 0;
+
+  if (pszLine == NULL) {
+    return result;
+  }
+
+  for(int i = 0;pszLine[i] != '\n';i++) {
+    result = i + 1;
+  }
+
+  return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // AcceptSocket function
 
 int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
@@ -483,6 +500,73 @@ void LockSocketMutex() {
 
     return; 	// Succeeded
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// ReceiveMultilineData function
+
+void ReceiveMultilineData(
+		LPRECEIVE_DATA_HANDLER lpfnDataHandler,
+		LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
+		LPRECEIVE_TERM_PREDICATE lpfnTermPredicate) {
+	char* pszDataBuffer = NULL;
+
+	lpfnDataHandler(&pszDataBuffer);
+
+	while (!lpfnTermPredicate(pszDataBuffer)) {
+		lpfnLineProcessor(pszDataBuffer, GetLineCharCount(pszDataBuffer));
+
+		FreeBuffer((void**) &pszDataBuffer);
+
+		lpfnDataHandler(&pszDataBuffer);
+	}
+
+	lpfnLineProcessor(pszDataBuffer, GetLineCharCount(pszDataBuffer));
+
+	FreeBuffer((void**) &pszDataBuffer);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// ReceiveMultilineData2 function
+
+void ReceiveMultilineData2(
+    void* pvData,
+    LPRECEIVE_DATA_HANDLER2 lpfnDataHandler2,
+    LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
+    LPRECEIVE_TERM_PREDICATE lpfnTermPredicate) {
+  char* pszDataBuffer = NULL;
+
+  if (pvData == NULL) {
+    return; // Required parameter
+  }
+
+  if (lpfnDataHandler2 == NULL) {
+    return; // Required parameter
+  }
+
+  if (lpfnLineProcessor == NULL) {
+    return; // Required parameter
+  }
+
+  if (lpfnTermPredicate == NULL) {
+    return; // Required parameter
+  }
+
+  lpfnDataHandler2(pvData, &pszDataBuffer);
+
+  while (!lpfnTermPredicate(pszDataBuffer)) {
+    lpfnLineProcessor(pszDataBuffer, GetLineCharCount(pszDataBuffer));
+
+    FreeBuffer((void**) &pszDataBuffer);
+
+    lpfnDataHandler2(pvData, &pszDataBuffer);
+  }
+
+  lpfnLineProcessor(pszDataBuffer, GetLineCharCount(pszDataBuffer));
+
+  FreeBuffer((void**) &pszDataBuffer);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Receive function - receives data from a TCP socket.
