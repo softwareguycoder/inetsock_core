@@ -16,7 +16,11 @@ typedef int (*LPRECEIVE_DATA_HANDLER2)(void*, char**);
 
 typedef void (*LPRECEIVE_LINE_PROCESSOR)(const char*, int);
 
+typedef void (*LPRECEIVE_LINE_PROCESSOR2)(void*, const char*, int);
+
 typedef BOOL (*LPRECEIVE_TERM_PREDICATE)(const char*);
+
+typedef BOOL (*LPRECEIVE_TERM_PREDICATE2)(void*, const char*);
 
 /**
  * @brief Accepts an incoming connection on a socket and returns information
@@ -102,6 +106,16 @@ void ErrorAndClose(int nSocket, const char *pszErrorMessage);
  * manner as possible.  This function is to be called once
  * per application, preferably from the main function. */
 void FreeSocketMutex();
+
+/**
+ * @name GetLineCharCount
+ * @brief Gets the count of characters in a line, excluding the terminating
+ * <LF>.
+ * @param pszLine Line to count characters for.
+ * @return Count of characters in the line provided, or zero if the string
+ * only contains whitespace or is of zero length.
+ */
+int GetLineCharCount(const char* pszLine);
 
 /**
  * @brief Populates the port and address information for a server
@@ -201,14 +215,17 @@ void ReceiveMultilineData(
 /**
  * @brief Processes multiline input over a socket using a trio of function
  * pointers.
- * @param lpfnDataHandler Address of a function that is called to execute a
+ * @param pvUserState Pointer to a block of memory containing user state that
+ * is to be passed to the callbacks.
+ * @param lpfnDataHandler2 Address of a function that is called to execute a
  * receive operation on the socket.  This may vary from implementation to
- * implementation.
- * @param lpfnLineProcessor Address of a function that is called to process
- * each line of data as it comes in.
- * @param lpfnTermPredicate Address of a function that examines the currently-
+ * implementation. The callback must accept pvUserState as its first argument.
+ * @param lpfnLineProcessor2 Address of a function that is called to process
+ * each line of data as it comes in.  The callback must also accept
+ * pvUserState as its first argument.
+ * @param lpfnTermPredicate2 Address of a function that examines the currently-
  * received content and decides whether the end of the content has been
- * reached.
+ * reached. The callback must also accept pvUserState as its first argument.
  * @remarks Call this function to run a synchronous receive loop to recieve
  * lines over a socket.  Since what constitutes a line, what is done with the
  * current line, and when the content ends is all implementation-specifics,
@@ -216,10 +233,10 @@ void ReceiveMultilineData(
  * in this function's prototype.
  */
 void ReceiveMultilineData2(
-    void* pvData,
+    void* pvUserState,
     LPRECEIVE_DATA_HANDLER2 lpfnDataHandler2,
-    LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
-    LPRECEIVE_TERM_PREDICATE lpfnTermPredicate);
+    LPRECEIVE_LINE_PROCESSOR2 lpfnLineProcessor2,
+    LPRECEIVE_TERM_PREDICATE2 lpfnTermPredicate2);
 
 /**
  * @brief Reads a line of data, terminated by the '\n' character, from a socket.

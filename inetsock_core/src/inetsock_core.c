@@ -530,13 +530,13 @@ void ReceiveMultilineData(
 // ReceiveMultilineData2 function
 
 void ReceiveMultilineData2(
-    void* pvData,
+    void* pvUserState,
     LPRECEIVE_DATA_HANDLER2 lpfnDataHandler2,
-    LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
-    LPRECEIVE_TERM_PREDICATE lpfnTermPredicate) {
+    LPRECEIVE_LINE_PROCESSOR2 lpfnLineProcessor2,
+    LPRECEIVE_TERM_PREDICATE2 lpfnTermPredicate2) {
   char* pszDataBuffer = NULL;
 
-  if (pvData == NULL) {
+  if (pvUserState == NULL) {
     return; // Required parameter
   }
 
@@ -544,25 +544,27 @@ void ReceiveMultilineData2(
     return; // Required parameter
   }
 
-  if (lpfnLineProcessor == NULL) {
+  if (lpfnLineProcessor2 == NULL) {
     return; // Required parameter
   }
 
-  if (lpfnTermPredicate == NULL) {
+  if (lpfnTermPredicate2 == NULL) {
     return; // Required parameter
   }
 
-  lpfnDataHandler2(pvData, &pszDataBuffer);
+  lpfnDataHandler2(pvUserState, &pszDataBuffer);
 
-  while (!lpfnTermPredicate(pszDataBuffer)) {
-    lpfnLineProcessor(pszDataBuffer, GetLineCharCount(pszDataBuffer));
+  while (!lpfnTermPredicate2(pvUserState, pszDataBuffer)) {
+    lpfnLineProcessor2(pvUserState,
+        pszDataBuffer, GetLineCharCount(pszDataBuffer));
 
     FreeBuffer((void**) &pszDataBuffer);
 
-    lpfnDataHandler2(pvData, &pszDataBuffer);
+    lpfnDataHandler2(pvUserState, &pszDataBuffer);
   }
 
-  lpfnLineProcessor(pszDataBuffer, GetLineCharCount(pszDataBuffer));
+  lpfnLineProcessor2(pvUserState,
+          pszDataBuffer, GetLineCharCount(pszDataBuffer));
 
   FreeBuffer((void**) &pszDataBuffer);
 }
