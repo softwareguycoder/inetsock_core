@@ -296,4 +296,13 @@ void SetSocketNonBlocking(int nSocket);
  */
 int SetSocketReusable(int nSocket);
 
+/**
+ * @brief Raises an error message on a socket send all failure, and shuts
+ * down the calling applciation after releasing operating system resources.
+ * @param pszMessage The data you are attempting to send.
+  * @param nSocket Socket file descriptor of the socket over which the
+  * send operation was being attempted.
+ */
+void ThrowSendAllFailedException(const char *pszMessage, int nSocket);
+
 #endif //__INETSOCK_CORE_H__
