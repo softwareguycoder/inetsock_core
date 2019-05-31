@@ -13,6 +13,37 @@ pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 // Internal-use-only functions
 
 ///////////////////////////////////////////////////////////////////////////////
+// AttemptToSendAllBytes function
+
+void AttemptToSendAllBytes(int nSocket, char** ppszBytes, int nLength,
+    int *pnTotalBytesSent, int* pnBytesRemaining) {
+  if (ppszBytes == NULL) {
+    return;
+  }
+
+  if (pnTotalBytesSent == NULL) {
+    return;
+  }
+
+  if (pnBytesRemaining == NULL) {
+    return;
+  }
+
+  if (IsNullOrWhiteSpace(*ppszBytes)) {
+    return;
+  }
+
+  int nBytesSent = send(nSocket, *ppszBytes, nLength, MSG_NOSIGNAL);
+  if (nBytesSent < 1) {
+    ThrowSendAllFailedException(*ppszBytes, nSocket);
+  }
+
+  *pnTotalBytesSent += nBytesSent;
+  *ppszBytes += nBytesSent;
+  *pnBytesRemaining -= nBytesSent;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // ThereAreStillBytesToSend function
 
 BOOL ThereAreStillBytesToSend(int nTotalBytesSent, int nBytesRemaining) {
@@ -26,6 +57,34 @@ BOOL ThereAreStillBytesToSend(int nTotalBytesSent, int nBytesRemaining) {
   }
 
   return nTotalBytesSent < nBytesRemaining;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// ThrowSendAllFailedExeception function
+
+void ThrowSendAllFailedException(const char *pszMessage, int nSocket) {
+  if (IsNullOrWhiteSpace(pszMessage)) {
+    goto cleanup;
+    return;
+  }
+
+  if (!IsSocketValid(nSocket)) {
+    goto cleanup;
+    return;
+  }
+
+  if (errno != EPIPE && errno != EBADF) {
+    perror("SendAll");
+  } else {
+    /* throw the socket away gracefully */
+    fprintf(stderr, CONNECTION_TERMINATED);
+    fprintf(stderr, "Failed to send: %s", pszMessage);
+  }
+
+cleanup:
+  CloseSocket(nSocket);
+  FreeSocketMutex();
+  exit(ERROR);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -764,34 +823,9 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
 
   int nBytesRemaining = (int) nLength;
 
-  while (nTotalBytesSent < nBytesRemaining) {
-    int nBytesSent = send(nSocket, ptr, nLength, MSG_NOSIGNAL);
-    if (nBytesSent < 1) {
-      if (errno != EPIPE && errno != EBADF) {
-        perror("SendAll");
-      } else {
-        /* throw the socket away gracefully */
-        fprintf(stderr, CONNECTION_TERMINATED);
-        fprintf(stderr, "Failed to send: %s", ptr);
-        CloseSocket(nSocket); // give this defunct socket back to OS
-        return 0;
-      }
-
-      fprintf(stderr, "Closing TCP endpoint...\n");
-      CloseSocket(nSocket);
-
-      fprintf(stderr, "Cleaning up operating system resources..\n");
-
-      FreeSocketMutex();
-
-      fprintf(stderr, "<terminated>\n");
-
-      exit(ERROR);
-    }
-
-    nTotalBytesSent += nBytesSent;
-    ptr += nBytesSent;
-    nBytesRemaining -= nBytesSent;
+  while (ThereAreStillBytesToSend(nTotalBytesSent, nBytesRemaining)) {
+    AttemptToSendAllBytes(nSocket, &ptr, nLength,
+        &nTotalBytesSent, &nBytesRemaining);
   }
 
   return nTotalBytesSent;
