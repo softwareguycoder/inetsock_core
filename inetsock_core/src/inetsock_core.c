@@ -10,6 +10,28 @@
 pthread_mutex_t* g_pSocketMutex; /* mutex for socket access */
 
 ///////////////////////////////////////////////////////////////////////////////
+// Internal-use-only functions
+
+///////////////////////////////////////////////////////////////////////////////
+// ThereAreStillBytesToSend function
+
+BOOL ThereAreStillBytesToSend(int nTotalBytesSent, int nBytesRemaining) {
+  BOOL bResult = FALSE;
+  if (nTotalBytesSent < 0) {
+    return bResult;
+  }
+
+  if (nBytesRemaining < 0) {
+    return bResult;
+  }
+
+  return nTotalBytesSent < nBytesRemaining;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Publicly-exposed functions
+
+///////////////////////////////////////////////////////////////////////////////
 // GetLineCharCount function
 
 int GetLineCharCount(const char* pszLine) {
