@@ -60,34 +60,6 @@ BOOL ThereAreStillBytesToSend(int nTotalBytesSent, int nBytesRemaining) {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// ThrowSendAllFailedExeception function
-
-void ThrowSendAllFailedException(const char *pszMessage, int nSocket) {
-  if (IsNullOrWhiteSpace(pszMessage)) {
-    goto cleanup;
-    return;
-  }
-
-  if (!IsSocketValid(nSocket)) {
-    goto cleanup;
-    return;
-  }
-
-  if (errno != EPIPE && errno != EBADF) {
-    perror("SendAll");
-  } else {
-    /* throw the socket away gracefully */
-    fprintf(stderr, CONNECTION_TERMINATED);
-    fprintf(stderr, "Failed to send: %s", pszMessage);
-  }
-
-cleanup:
-  CloseSocket(nSocket);
-  FreeSocketMutex();
-  exit(ERROR);
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // Publicly-exposed functions
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -905,3 +877,30 @@ void UnlockSocketMutex() {
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// ThrowSendAllFailedExeception function
+
+void ThrowSendAllFailedException(const char *pszMessage, int nSocket) {
+  if (IsNullOrWhiteSpace(pszMessage)) {
+    goto cleanup;
+    return;
+  }
+
+  if (!IsSocketValid(nSocket)) {
+    goto cleanup;
+    return;
+  }
+
+  if (errno != EPIPE && errno != EBADF) {
+    perror("SendAll");
+  } else {
+    /* throw the socket away gracefully */
+    fprintf(stderr, CONNECTION_TERMINATED);
+    fprintf(stderr, "Failed to send: %s", pszMessage);
+  }
+
+cleanup:
+  CloseSocket(nSocket);
+  FreeSocketMutex();
+  exit(ERROR);
+}
