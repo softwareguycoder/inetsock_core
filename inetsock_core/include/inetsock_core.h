@@ -208,9 +208,9 @@ int ListenSocket(int nSocket);
  * in this function's prototype.
  */
 void ReceiveMultilineData(
-		LPRECEIVE_DATA_HANDLER lpfnDataHandler,
-		LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
-		LPRECEIVE_TERM_PREDICATE lpfnTermPredicate);
+    LPRECEIVE_DATA_HANDLER lpfnDataHandler,
+    LPRECEIVE_LINE_PROCESSOR lpfnLineProcessor,
+    LPRECEIVE_TERM_PREDICATE lpfnTermPredicate);
 
 /**
  * @brief Processes multiline input over a socket using a trio of function
@@ -300,8 +300,8 @@ int SetSocketReusable(int nSocket);
  * @brief Raises an error message on a socket send all failure, and shuts
  * down the calling applciation after releasing operating system resources.
  * @param pszMessage The data you are attempting to send.
-  * @param nSocket Socket file descriptor of the socket over which the
-  * send operation was being attempted.
+ * @param nSocket Socket file descriptor of the socket over which the
+ * send operation was being attempted.
  */
 void ThrowSendAllFailedException(const char *pszMessage, int nSocket);
 
