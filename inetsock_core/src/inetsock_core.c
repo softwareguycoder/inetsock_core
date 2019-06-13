@@ -44,6 +44,13 @@ void AttemptToSendAllBytes(int nSocket, char** ppszBytes, int nLength,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// IsAShowstoppingAcceptError function
+
+BOOL IsAShowstoppingAcceptError(int nLastError) {
+  return EBADF != nLastError && EINVAL != nLastError && EINTR != nLastError;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // ThereAreStillBytesToSend function
 
 BOOL ThereAreStillBytesToSend(int nTotalBytesSent, int nBytesRemaining) {
@@ -116,7 +123,7 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
 
   if ((nClientSocket = accept(nSocket, (struct sockaddr*) pAddrInfo,
       &clientAddressLength)) < 0) {
-    if (EBADF != errno && EINVAL != errno) {
+    if (IsAShowstoppingAcceptError(errno)) {
       perror("AcceptSocket");
 
       FreeSocketMutex();
