@@ -129,6 +129,8 @@ int AcceptSocket(int nSocket, struct sockaddr_in *pAddrInfo) {
       FreeSocketMutex();
 
       CloseSocket(nSocket);
+    } else if (EINTR == errno) {
+      return ERROR;
     }
 
     /* If errno is EBADF, this is just from a thread being terminated
@@ -203,6 +205,8 @@ void CloseSocket(int nSocket) {
             // passed is invalid
   }
 
+  fprintf(stdout, "CloseSocket: Calling shutdown...\n");
+
   if (OK != shutdown(nSocket, SHUT_RD)) {
     /* This is not really an error, since shutting down a socket
      * really just means disabling reads/writes on an open socket,
@@ -213,11 +217,11 @@ void CloseSocket(int nSocket) {
         "descriptor %d.", nSocket);
   }
 
-  int nResult = close(nSocket);
+  fprintf(stdout, "CloseSocket: Calling close() on the socket...\n");
 
-  if (nResult < 0) {
-    return;
-  }
+  close(nSocket);
+
+  fprintf(stdout, "CloseSocket: Done.\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
