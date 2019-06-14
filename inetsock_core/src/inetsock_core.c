@@ -205,23 +205,18 @@ void CloseSocket(int nSocket) {
             // passed is invalid
   }
 
-  fprintf(stdout, "CloseSocket: Calling shutdown...\n");
-
   if (OK != shutdown(nSocket, SHUT_RD)) {
     /* This is not really an error, since shutting down a socket
      * really just means disabling reads/writes on an open socket,
      * not closing it.  Who cares if we cannot perform this
      * operation? */
-
-    LogWarning("CloseSocket: Failed to shut down the socket with file "
-        "descriptor %d.", nSocket);
+    if (GetLogFileHandle() != stdout) {
+      LogWarning("CloseSocket: Failed to shut down the socket with file "
+          "descriptor %d.", nSocket);
+    }
   }
 
-  fprintf(stdout, "CloseSocket: Calling close() on the socket...\n");
-
   close(nSocket);
-
-  fprintf(stdout, "CloseSocket: Done.\n");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -910,7 +905,7 @@ void ThrowSendAllFailedException(const char *pszMessage, int nSocket) {
     fprintf(stderr, "Failed to send: %s", pszMessage);
   }
 
-cleanup:
+  cleanup:
   CloseSocket(nSocket);
   FreeSocketMutex();
   exit(ERROR);
