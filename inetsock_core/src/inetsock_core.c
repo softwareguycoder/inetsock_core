@@ -29,7 +29,7 @@ void AttemptToSendAllBytes(int nSocket, char** ppszBytes, int nLength,
     return;
   }
 
-  if (IsNullOrWhiteSpace(*ppszBytes)) {
+  if (*ppszBytes == NULL || (*ppszBytes)[0] == '\0') {
     return;
   }
 
@@ -736,11 +736,6 @@ int Send(int nSocket, const char *pszMessage) {
     exit(ERROR);
   }
 
-  if (IsNullOrWhiteSpace(pszMessage)) {
-    // Nothing to send
-    return 0;
-  }
-
   int nMessageLength = strlen(pszMessage);
 
   int nBytesSent = SendAll(nSocket, pszMessage, nMessageLength);
@@ -777,7 +772,7 @@ int SendAll(int nSocket, const char *pszMessage, size_t nLength) {
     exit(ERROR);
   }
 
-  if (IsNullOrWhiteSpace(pszMessage)) {
+  if (pszMessage == NULL || pszMessage[0] == '\0') {
     errno = EINVAL;
 
     perror("SendAll");
