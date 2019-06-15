@@ -842,12 +842,14 @@ int SetSocketReusable(int nSocket) {
   {
     nResult = setsockopt(nSocket, SOL_SOCKET, SO_REUSEADDR, &(int ) {
             1 }, sizeof(int));
-    if (nResult < 0) {
+    if (nResult < 0 && errno != EBADF) {
       perror("setsockopt");
 
       UnlockSocketMutex();
 
       return nResult;
+    } else if (errno == EBADF) {
+      nResult = OK; // this is fine if the socket has gone away
     }
   }
   UnlockSocketMutex();
